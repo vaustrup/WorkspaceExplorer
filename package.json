@@ -1,0 +1,19 @@
+{
+  "name": "workspaceexplorer",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "bootstrap": "^5.2.1",
+    "d3": "^7.6.1",
+    "vue": "^3.2.37",
+    "vue-mathjax-next": "^0.0.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^3.0.1",
+    "vite": "^3.0.4"
+  }
+}
