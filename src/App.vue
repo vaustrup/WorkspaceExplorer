@@ -11,7 +11,7 @@ import AnalysesList from './components/AnalysesList.vue'
 	      <div class="container-fluid">
 	      	<a class="navbar-brand" href="#" style="padding-left:1em">WorkSpaceX</a>
 	      	<a class="d-flex" href="https://github.com/vaustrup/WorkspaceExplorer">
-	      		<img src="/public/GitHub-Mark-Light-64px.png" height="30px" />
+	      		<img src="/GitHub-Mark-Light-64px.png" height="30px" />
 	      	</a>
 	      </div>
       </nav>
