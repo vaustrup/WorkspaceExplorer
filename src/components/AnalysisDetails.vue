@@ -9,8 +9,8 @@
     </template>
   </div>
   <br>
-  <h2 class="regions">Systematic Variations</h2>
   <div style="text-align:center;">
+    <h2>Systematic Variations</h2>
     <input type="text" v-model="systFilter" placeholder="Filter Systematic Variations" />
     <input type="number" min=0 :max="parseInt(systnames.length/10)" v-model="systPage" placeholder="Switch systematics" />
   </div>
@@ -85,12 +85,12 @@ import SystDataPlot from './SystDataPlot.vue'
     width: 100%;
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-around;
+    overflow-x: scroll;
   }
   .region {
     display: flex;
     flex-direction: column;
     text-align:center;
+    margin: 1em 5em;
   }
 </style>
