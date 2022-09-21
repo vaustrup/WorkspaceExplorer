@@ -73,7 +73,10 @@ import * as d3 from 'd3';
         return tot;
       },
       maximumYields() {
-        return Math.max(...this.totalYields);
+        const maxyields = Math.max(...this.totalYields);
+        const observed = this.observations.data;
+        const maximum_observed = d3.max(observed, d=>d+d**0.5);
+        return Math.max(maxyields, maximum_observed);
       },
       bins() {
         const length = this.workspace.samples[0].data.length;
@@ -93,16 +96,15 @@ import * as d3 from 'd3';
         return scale;
       },
       pathStringX() {
-        const ticklength = this.ticklength;
         let string = "M" + 0 + "," + 0;
         for (const i of this.bins) {
           string += "H"+this.xScale(i);
-          string += "V"+(-ticklength);
+          string += "V"+(-this.ticklength);
           string += "M"+this.xScale(i)+","+0;
           string += "H"+this.xScale(i);
         }
         string += "H200,0";
-        string += "V"+(-ticklength);
+        string += "V"+(-this.ticklength);
         return string;
       },
       pathStringY() {

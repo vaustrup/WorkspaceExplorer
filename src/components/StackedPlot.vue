@@ -78,7 +78,7 @@ import * as d3 from 'd3';
         const data = this.stackedData;
         const observed = this.observations.data;
         const maximum_data = d3.max(data[data.length-1], d=>d[1]);
-        const maximum_observed = d3.max(observed, d=>d);
+        const maximum_observed = d3.max(observed, d=>d+d**0.5);
         return Math.max(maximum_data, maximum_observed);
       },
       bins() {
@@ -94,7 +94,7 @@ import * as d3 from 'd3';
       },
       yScale() {
         const scale = d3.scaleLinear()
-                .domain([0,this.maximumYields])
+                .domain([0,1.2*this.maximumYields])
                 .range([-200,0]);
         return scale;
       },
