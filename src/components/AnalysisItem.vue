@@ -24,7 +24,7 @@
       <div class="detail">
         <h2>Normalisation Factors</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="nf in normfactornames">{{nf[0]}} ({{nf[1]}})</li>
+          <li class="list-group-item" v-for="nf in normfactornames">{{nf[0]}} (<span v-if="nf[1]">fixed</span><span v-else>floating</span>)</li>
         </ul>
       </div>
     </div>
