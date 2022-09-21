@@ -5,7 +5,7 @@
         <template v-for="(process, processindex) in processNames">
           <rect :height="yScale(stackedData[processindex][bin][1])-yScale(stackedData[processindex][bin][0])" :x="xScale(bin)" :y="yScale(stackedData[processindex][bin][0])-yScale(stackedData[stackedData.length-1][bin][1])" :width="xScale.bandwidth()" :fill="color(process)"/>
         </template>
-        <rect :height="2*uncertainty[bin]" :width="xScale.bandwidth()" :x="xScale(bin)" :y="yScale(stackedData[0][bin][0])-yScale(stackedData[stackedData.length-1][bin][1])-uncertainty[bin]" fill="black" :opacity="0.5" />
+        <rect :height="yScale(uncertainty_up[bin])-yScale(uncertainty_down[bin])" :width="xScale.bandwidth()" :x="xScale(bin)" :y="yScale(stackedData[0][bin][0])-yScale(uncertainty_up[bin])" fill="black" :opacity="0.5" />
         <circle :cx="xScale(bin)+0.5*xScale.bandwidth()" :cy="Math.abs(yScale(observations.data[bin]))-200" :r="5" />
         <line :x1="xScale(bin)+0.5*xScale.bandwidth()" :y1="Math.abs(yScale(observations.data[bin]-observations.data[bin]**0.5))-200" :x2="xScale(bin)+0.5*xScale.bandwidth()" :y2="Math.abs(yScale(observations.data[bin]+observations.data[bin]**0.5))-200" stroke="black"/>
       </template>
@@ -46,14 +46,32 @@ import * as d3 from 'd3';
             stackedArray[bin][sample.name] = sample.data[bin];
           }
         }
+        for (const processName of this.processNames) {
+          if (!stackedArray[0].hasOwnProperty(processName)) {
+            for (const bin of this.bins) {
+              stackedArray[bin][processName] = 0;
+            }
+          }
+        }
         const data = d3.stack()
               .keys(this.processNames)
               (stackedArray);
         return data;
       },
-      uncertainty() {
+      uncertainty_up() {
         const length = this.workspace.samples[0].data.length;
-        let abs_unc = Array.from({length: length}, u => (20));
+        let abs_unc = Array.from({length: length}, u => (0));
+        for (const bin of this.bins) {
+          abs_unc[bin] = this.stackedData[this.processNames.length-1][bin][1]*1.2;
+        }
+        return abs_unc;
+      },
+      uncertainty_down() {
+        const length = this.workspace.samples[0].data.length;
+        let abs_unc = Array.from({length: length}, u => (0));
+        for (const bin of this.bins) {
+          abs_unc[bin] = this.stackedData[this.processNames.length-1][bin][1]*0.8;
+        }
         return abs_unc;
       },
       maximumYields() {
