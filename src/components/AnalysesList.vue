@@ -19,13 +19,19 @@ export default {
       const vm = this;
       const reader = new FileReader();
       reader.onload = function() {
-        const workspace = JSON.parse(reader.result);
+        let workspace = {};
+        try {
+          workspace = JSON.parse(reader.result);
+        }
+        catch (e) {
+          console.log(e);
+          return;
+        }
         vm.workspaces.push({name: file.name, workspace: workspace});
       }
       reader.readAsText(file);
     },
     deleteWorkspace: function(index) {
-      console.log(index);
       this.workspaces.splice(index,1);
     }
   }
