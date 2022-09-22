@@ -75,7 +75,7 @@ export default {
       const ws = this.workspace.workspace
       const channels = []
       for (const c of ws.channels) {
-        const channeldict = { 'name': c.name }
+        const channeldict = { name: c.name }
         for (const p of c.samples) {
           const yields = p.data.reduce((pv, cv) => pv + cv, 0)
           channeldict[p.name] = yields
@@ -116,10 +116,10 @@ export default {
       const ws = this.workspace.workspace
       const observed = []
       for (const c of ws.channels) {
-        const datadict = { 'name': c.name }
+        const datadict = { name: c.name }
         for (const d of ws.observations) {
           if (d.name !== c.name) { continue }
-          datadict["observed"] = d.data.reduce((pv, cv) => pv + cv, 0)
+          datadict.observed = d.data.reduce((pv, cv) => pv + cv, 0)
         }
         observed.push(datadict)
       }
@@ -127,7 +127,7 @@ export default {
     },
     // total yield per process across all regions
     processes () {
-      const processDict = {};
+      const processDict = {}
       const ws = this.workspace.workspace
       for (const c of ws.channels) {
         for (const p of c.samples) {

@@ -1,13 +1,9 @@
 <script>
 import * as d3 from 'd3'
-import VueMathjax from 'vue-mathjax-next'
 export default {
   props: {
     inputData: Object,
     processNames: Array
-  },
-  components: {
-    VueMathjax
   },
   data () {
     return {
