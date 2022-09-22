@@ -2,7 +2,7 @@
   <h2>{{this.systname}}</h2>
   <svg :height="350">
     <g transform="translate(50, 300)">
-      <template v-for="bin in bins">
+      <template v-for="bin in bins" :key="bin">
         <line :x1="xScale(bin)" :x2="xScale(bin)+xScale.bandwidth()" :y1="Math.abs(yScale(totalYields[bin]))-200" :y2="Math.abs(yScale(totalYields[bin]))-200" stroke="black" />
         <line :x1="xScale(bin)" :x2="xScale(bin)+xScale.bandwidth()" :y1="Math.abs(yScale(totalSystYields[bin][0]))-200" :y2="Math.abs(yScale(totalSystYields[bin][0]))-200" stroke="red" />
         <line :x1="xScale(bin)" :x2="xScale(bin)+xScale.bandwidth()" :y1="Math.abs(yScale(totalSystYields[bin][1]))-200" :y2="Math.abs(yScale(totalSystYields[bin][1]))-200" stroke="blue" />
@@ -12,7 +12,7 @@
       </template>
       <path fill="none" stroke="#000" :d="pathStringX"></path>
       <path fill="none" stroke="#000" :d="pathStringY"></path>
-      <text v-for="tick in yScale.ticks(5)" :x="-10" :y="-200-yScale(tick)" dominant-baseline="middle" text-anchor="end">{{tick}}</text>
+      <text v-for="tick in yScale.ticks(5)" :key="tick" :x="-10" :y="-200-yScale(tick)" dominant-baseline="middle" text-anchor="end">{{tick}}</text>
     </g>
   </svg>
 </template>

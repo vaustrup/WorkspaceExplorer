@@ -2,7 +2,7 @@
   <div class="region">
 	<h2><span class="regionname">{{inputData.name}}</span></h2>
 	<svg :width="2*radius" :height="2*radius">
-		<path v-for="process in processNames" :d="pieChartPath[process]" :fill="color(process)"/>
+		<path v-for="process in processNames" :key="process" :d="pieChartPath[process]" :fill="color(process)"/>
 	</svg>
   </div>
 </template>

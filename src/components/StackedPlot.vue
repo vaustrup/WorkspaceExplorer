@@ -1,8 +1,8 @@
 <template>
   <svg :height="350">
     <g transform="translate(50, 300)">
-      <template v-for="bin in bins">
-        <template v-for="(process, processindex) in processNames">
+      <template v-for="bin in bins" :key="bin">
+        <template v-for="(process, processindex) in processNames" :key="process">
           <rect :height="yScale(stackedData[processindex][bin][1])-yScale(stackedData[processindex][bin][0])" :x="xScale(bin)" :y="yScale(stackedData[processindex][bin][0])-yScale(stackedData[stackedData.length-1][bin][1])" :width="xScale.bandwidth()" :fill="color(process)"/>
         </template>
         <rect :height="yScale(uncertainty_up[bin])-yScale(uncertainty_down[bin])" :width="xScale.bandwidth()" :x="xScale(bin)" :y="yScale(stackedData[0][bin][0])-yScale(uncertainty_up[bin])" fill="black" :opacity="0.5" />
@@ -11,8 +11,8 @@
       </template>
       <path fill="none" stroke="#000" :d="pathStringX"></path>
       <path fill="none" stroke="#000" :d="pathStringY"></path>
-      <text v-for="bin in bins" :x="25" :y="-xScale(bin)-0.5*xScale.bandwidth()" transform="rotate(90)" dominant-baseline="middle" text-anchor="middle">bin {{bin}}</text>
-      <text v-for="tick in yScale.ticks(5)" :x="-10" :y="-200-yScale(tick)" dominant-baseline="middle" text-anchor="end">{{tick}}</text>
+      <text v-for="bin in bins" :key="bin" :x="25" :y="-xScale(bin)-0.5*xScale.bandwidth()" transform="rotate(90)" dominant-baseline="middle" text-anchor="middle">bin {{bin}}</text>
+      <text v-for="tick in yScale.ticks(5)" :key="tick" :x="-10" :y="-200-yScale(tick)" dominant-baseline="middle" text-anchor="end">{{tick}}</text>
     </g>
   </svg>
 </template>

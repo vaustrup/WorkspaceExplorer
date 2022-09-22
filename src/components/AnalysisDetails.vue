@@ -1,7 +1,7 @@
 <template>
   <h2 style="text-align:center">Regions</h2>
   <div class="regions">
-    <template v-for="(channel, channelindex) in inputData">
+    <template v-for="(channel, channelindex) in inputData" :key="channel.name">
       <div class="region">
         <PieChart :processNames="processNames" :inputData="channel" />
         <StackedPlot :processNames="processNames" :workspace="workspace.workspace.channels[channelindex]" :observations="workspace.workspace.observations[channelindex]" :systNames="systnames"/>
@@ -15,9 +15,9 @@
     <input type="number" min=0 :max="parseInt(systnames.length/10)" v-model="systPage" placeholder="Switch systematics" />
   </div>
   <div class="regions">
-    <template v-for="(channel, channelindex) in inputData">
+    <template v-for="(channel, channelindex) in inputData" :key="channel.name">
       <div class="region">
-        <template v-for="(systname, systindex) in systnames">
+        <template v-for="(systname, systindex) in systnames" :key="systname">
           <SystDataPlot v-if="parseInt(systindex/10)===systPage" :workspace="workspace.workspace.channels[channelindex]" :observations="workspace.workspace.observations[channelindex]" :systname="systname"/>
         </template>
       </div>

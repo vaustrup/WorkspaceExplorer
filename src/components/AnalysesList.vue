@@ -46,7 +46,7 @@ export default {
         <span v-if="workspaces.length===0">No workspaces loaded yet. Add some to start exploring!</span>
       </div>
       <ul class="list-group">
-        <li class="list-group-item" v-for="(workspace, workspaceindex) in workspaces">{{workspace.name}} <span class="deletebutton" @click="deleteWorkspace(workspaceindex)">&#x1f5d1;</span></li>
+        <li class="list-group-item" v-for="(workspace, workspaceindex) in workspaces" :key="workspace.name">{{workspace.name}} <span class="deletebutton" @click="deleteWorkspace(workspaceindex)">&#x1f5d1;</span></li>
       </ul>
       <div class="addbutton">
         <label class="btn btn-outline-primary btn-lg">
@@ -57,7 +57,7 @@ export default {
     </div>
   </div>
   <div class="card">
-    <template v-for="workspace in this.workspaces">
+    <template v-for="workspace in this.workspaces" :key="workspace.name">
       <hr style="color:rgb(137,186,23)">
       <AnalysisItem :workspace="workspace" />
     </template>

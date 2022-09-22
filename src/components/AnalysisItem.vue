@@ -12,19 +12,19 @@
       <div class="detail">
         <h2>Regions</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="channel in inputData">{{channel.name}}</li>
+          <li class="list-group-item" v-for="channel in inputData" :key="channel.name">{{channel.name}}</li>
         </ul>
       </div>
       <div class="detail">
         <h2>Processes</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="processName in processNames">{{processName}}</li> 
+          <li class="list-group-item" v-for="processName in processNames" :key="processName">{{processName}}</li>
         </ul>
       </div>
       <div class="detail">
         <h2>Normalisation Factors</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="nf in normfactornames">{{nf[0]}} (<span v-if="nf[1]">fixed</span><span v-else>floating</span>)</li>
+          <li class="list-group-item" v-for="nf in normfactornames" :key="nf[0]">{{nf[0]}} (<span v-if="nf[1]">fixed</span><span v-else>floating</span>)</li>
         </ul>
       </div>
     </div>
