@@ -99,14 +99,13 @@ export default {
           for (const modifier of sample.modifiers) {
             if (modifier.type !== 'normfactor') { continue }
             if (tempNames.includes(modifier.name)) { continue }
-            name = modifier.name
             let fixed = false
             for (const parameter of this.workspace.workspace.measurements[0].config.parameters) {
-              if (parameter.name !== name) { continue }
+              if (parameter.name !== modifier.name) { continue }
               fixed = parameter.fixed
             }
-            names.push([name, fixed])
-            tempNames.push(name)
+            names.push([modifier.name, fixed])
+            tempNames.push(modifier.name)
           }
         }
       }

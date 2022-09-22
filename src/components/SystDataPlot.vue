@@ -33,7 +33,7 @@ export default {
   computed: {
     totalYields () {
       const length = this.workspace.samples[0].data.length
-      const tot = Array.from({ length: length }, u => (0))
+      const tot = Array.from({ length }, u => (0))
       for (let bin = 0; bin < length; bin++) {
         for (const sample of this.workspace.samples) {
           tot[bin] += sample.data[bin]
@@ -43,7 +43,7 @@ export default {
     },
     totalSystYields () {
       const length = this.workspace.samples[0].data.length
-      const tot = Array.from({ length: length }, u => ([0, 0]))
+      const tot = Array.from({ length }, u => ([0, 0]))
       for (const sample of this.workspace.samples) {
         const result = sample.modifiers.find(obj => {
           return obj.name === this.systname
@@ -77,7 +77,7 @@ export default {
     },
     bins () {
       const length = this.workspace.samples[0].data.length
-      const domain = Array.from({ length: length }, (e, i) => i)
+      const domain = Array.from({ length }, (e, i) => i)
       return domain
     },
     xScale () {

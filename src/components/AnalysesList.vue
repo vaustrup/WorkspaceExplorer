@@ -26,7 +26,7 @@ export default {
           console.log(e)
           return
         }
-        vm.workspaces.push({ name: file.name, workspace: workspace })
+        vm.workspaces.push({ name: file.name, workspace })
       }
       reader.readAsText(file)
     },

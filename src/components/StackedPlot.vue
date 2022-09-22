@@ -39,7 +39,7 @@ export default {
     stackedData () {
       const length = this.workspace.samples[0].data.length
       // create array of independent objects (NOT REFERENCES!)
-      const stackedArray = Array.from({ length: length }, u => ({}))
+      const stackedArray = Array.from({ length }, u => ({}))
       for (const sample of this.workspace.samples) {
         for (let bin = 0; bin < sample.data.length; bin++) {
           stackedArray[bin][sample.name] = sample.data[bin]
@@ -58,7 +58,7 @@ export default {
     },
     uncertainty_up () {
       const length = this.workspace.samples[0].data.length
-      const absUnc = Array.from({ length: length }, u => (0))
+      const absUnc = Array.from({ length }, u => (0))
       for (const bin of this.bins) {
         absUnc[bin] = this.stackedData[this.processNames.length - 1][bin][1] * 1.2
       }
@@ -66,7 +66,7 @@ export default {
     },
     uncertainty_down () {
       const length = this.workspace.samples[0].data.length
-      const absUnc = Array.from({ length: length }, u => (0))
+      const absUnc = Array.from({ length }, u => (0))
       for (const bin of this.bins) {
         absUnc[bin] = this.stackedData[this.processNames.length - 1][bin][1] * 0.8
       }
@@ -81,7 +81,7 @@ export default {
     },
     bins () {
       const length = this.workspace.samples[0].data.length
-      const domain = Array.from({ length: length }, (e, i) => i)
+      const domain = Array.from({ length }, (e, i) => i)
       return domain
     },
     xScale () {
