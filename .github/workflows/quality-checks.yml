@@ -1,5 +1,5 @@
 name: quality-checks
-onn: [push]
+on: [push]
 jobs:
   ESlint:
     runs-on: ubuntu-latest
