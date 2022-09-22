@@ -53,113 +53,113 @@ export default {
   props: {
     workspace: Object
   },
-  data() {
+  data () {
     return {
       isActive: false,
       detailView: false,
-      workspacetitle: this.workspace.name,
+      workspacetitle: this.workspace.name
     }
   },
   computed: {
-    workspaceTitle() {
-      return this.workspacetitle;
+    workspaceTitle () {
+      return this.workspacetitle
     },
-    processNames() {
+    processNames () {
       // sort processes by their total yield across all regions
-      var items = Object.keys(this.processes).map((key) => { return [key, this.processes[key]] });
-      items.sort((first, second) => { return second[1] - first[1] });
-      let processNameList = items.map((e) => { return e[0] });
-      return processNameList;
+      const items = Object.keys(this.processes).map((key) => { return [key, this.processes[key]] })
+      items.sort((first, second) => { return second[1] - first[1] })
+      const processNameList = items.map((e) => { return e[0] })
+      return processNameList
     },
-    inputData() { // list of all regions and the corresponding yields
-      const ws = this.workspace.workspace;
-      let channels = []
+    inputData () { // list of all regions and the corresponding yields
+      const ws = this.workspace.workspace
+      const channels = []
       for (const c of ws.channels) {
-        const channeldict = {'name': c.name};
+        const channeldict = { 'name': c.name }
         for (const p of c.samples) {
-          const yields = p.data.reduce((pv, cv) => pv + cv, 0);
-          channeldict[p.name] = yields;
+          const yields = p.data.reduce((pv, cv) => pv + cv, 0)
+          channeldict[p.name] = yields
         }
-        channels.push(channeldict);
+        channels.push(channeldict)
       }
       for (const c of channels) {
         for (const p in this.processes) {
-          if ( !(p in c) ) {
-            c[p] = 0;
+          if (!(p in c)) {
+            c[p] = 0
           }
         }
       }
-      return channels;
+      return channels
     },
-    normfactornames() {
-      let names = [];
-      let tempNames = [];
-      for (const channel of this.workspace.workspace.channels){
-        for(const sample of channel.samples){
-          for(const modifier of sample.modifiers) {
-            if(modifier.type !== "normfactor") {continue;}
-            if(tempNames.includes(modifier.name)) {continue;}
-            name = modifier.name;
-            let fixed = false;
-            for (const parameter of this.workspace.workspace.measurements[0].config.parameters){
-              if(parameter.name !== name) {continue;}
-              fixed = parameter.fixed;
+    normfactornames () {
+      const names = []
+      const tempNames = []
+      for (const channel of this.workspace.workspace.channels) {
+        for (const sample of channel.samples) {
+          for (const modifier of sample.modifiers) {
+            if (modifier.type !== 'normfactor') { continue }
+            if (tempNames.includes(modifier.name)) { continue }
+            name = modifier.name
+            let fixed = false
+            for (const parameter of this.workspace.workspace.measurements[0].config.parameters) {
+              if (parameter.name !== name) { continue }
+              fixed = parameter.fixed
             }
-            names.push([name, fixed]);
-            tempNames.push(name);
+            names.push([name, fixed])
+            tempNames.push(name)
           }
         }
       }
-      names.sort();
-      return names;
+      names.sort()
+      return names
     },
-    observations() {
-      const ws = this.workspace.workspace;
-      let observed = [];
+    observations () {
+      const ws = this.workspace.workspace
+      const observed = []
       for (const c of ws.channels) {
-        const datadict = {'name': c.name};
+        const datadict = { 'name': c.name }
         for (const d of ws.observations) {
-          if(d.name!=c.name) {continue;}
-          datadict["observed"] = d.data.reduce((pv, cv) => pv + cv, 0);
+          if (d.name !== c.name) { continue }
+          datadict["observed"] = d.data.reduce((pv, cv) => pv + cv, 0)
         }
-        observed.push(datadict);
+        observed.push(datadict)
       }
-      return observed;
+      return observed
     },
-    processes() {  // total yield per process across all regions
-      let processDict = {};
-      const ws = this.workspace.workspace;
-      let channels = []
+    // total yield per process across all regions
+    processes () {
+      const processDict = {};
+      const ws = this.workspace.workspace
       for (const c of ws.channels) {
         for (const p of c.samples) {
-          const yields = p.data.reduce((pv, cv) => pv + cv, 0);
+          const yields = p.data.reduce((pv, cv) => pv + cv, 0)
           if (processDict.hasOwnProperty(p.name)) {
-            processDict[p.name] += yields;
+            processDict[p.name] += yields
           } else {
-            processDict[p.name] = yields;
+            processDict[p.name] = yields
           }
         }
       }
-      return processDict;
-    },
-  },
-  methods: {
-    focusField() {
-      this.isActive = true;
-    },
-    blurField() {
-      this.isActive = false;
-    },
-    showField() {
-      return this.isActive;
-    },
-    toggleDetailedView() {
-      this.detailView = !this.detailView;
-    },
-    isDetailedView() {
-      return this.detailView;
+      return processDict
     }
   },
+  methods: {
+    focusField () {
+      this.isActive = true
+    },
+    blurField () {
+      this.isActive = false
+    },
+    showField () {
+      return this.isActive
+    },
+    toggleDetailedView () {
+      this.detailView = !this.detailView
+    },
+    isDetailedView () {
+      return this.detailView
+    }
+  }
 }
 </script>
 
@@ -205,15 +205,15 @@ export default {
 .tooltip:before {
   content: attr(data-text); /* here's the magic */
   position:absolute;
-  
+
   /* vertically center */
   top:50%;
   transform:translateY(-50%);
-  
+
   /* move to right */
   left:100%;
   margin-left:15px; /* and add a small left margin */
-  
+
   /* basic styles */
   width:200px;
   padding:10px;

@@ -17,107 +17,104 @@
   </svg>
 </template>
 
-
 <script>
-import * as d3 from 'd3';
-  export default {
-  	props: {
-      workspace: Object,
-      observations: Object,
-      systname: String,
-  	},
-    data() {
-      return {
-        ticklength: 5,
+import * as d3 from 'd3'
+export default {
+  props: {
+    workspace: Object,
+    observations: Object,
+    systname: String
+  },
+  data () {
+    return {
+      ticklength: 5
+    }
+  },
+  computed: {
+    totalYields () {
+      const length = this.workspace.samples[0].data.length
+      const tot = Array.from({ length: length }, u => (0))
+      for (let bin = 0; bin < length; bin++) {
+        for (const sample of this.workspace.samples) {
+          tot[bin] += sample.data[bin]
+        }
       }
+      return tot
     },
-    computed: {
-      totalYields() {
-        const length = this.workspace.samples[0].data.length;
-        let tot = Array.from({length:length}, u => (0));
-        for (var bin = 0; bin < length; bin++) {
-          for(const sample of this.workspace.samples) {
-            tot[bin] += sample.data[bin];
+    totalSystYields () {
+      const length = this.workspace.samples[0].data.length
+      const tot = Array.from({ length: length }, u => ([0, 0]))
+      for (const sample of this.workspace.samples) {
+        const result = sample.modifiers.find(obj => {
+          return obj.name === this.systname
+        })
+        if (typeof result === 'undefined') {
+          for (let bin = 0; bin < length; bin++) {
+            tot[bin][1] += sample.data[bin]
+            tot[bin][0] += sample.data[bin]
           }
-        }
-        return tot;
-      },
-      totalSystYields() {
-        const length = this.workspace.samples[0].data.length;
-        let tot = Array.from({length:length}, u => ([0,0]));
-        for(const sample of this.workspace.samples) {
-          var result = sample.modifiers.find(obj=> {
-              return obj.name === this.systname
-          });
-          if(typeof result === "undefined"){
-            for (var bin = 0; bin < length; bin++){
-              tot[bin][1] += sample.data[bin];
-              tot[bin][0] += sample.data[bin];
+        } else {
+          if (result.type === 'normsys') {
+            for (let bin = 0; bin < length; bin++) {
+              tot[bin][1] += result.data.hi * sample.data[bin]
+              tot[bin][0] += result.data.lo * sample.data[bin]
             }
-          }
-          else{
-            if(result.type==="normsys"){
-              for (var bin = 0; bin < length; bin++){
-                tot[bin][1] += result.data.hi * sample.data[bin];
-                tot[bin][0] += result.data.lo * sample.data[bin];
-              }
-            }
-            else {
-              for (var bin = 0; bin < length; bin++){
-                tot[bin][1] += result.data.hi_data[bin];
-                tot[bin][0] += result.data.lo_data[bin];
-              }
+          } else {
+            for (let bin = 0; bin < length; bin++) {
+              tot[bin][1] += result.data.hi_data[bin]
+              tot[bin][0] += result.data.lo_data[bin]
             }
           }
         }
-        return tot;
-      },
-      maximumYields() {
-        const maxyields = Math.max(...this.totalYields);
-        const observed = this.observations.data;
-        const maximum_observed = d3.max(observed, d=>d+d**0.5);
-        return Math.max(maxyields, maximum_observed);
-      },
-      bins() {
-        const length = this.workspace.samples[0].data.length;
-        const domain = Array.from({length: length}, (e, i)=> i);
-        return domain;
-      },
-      xScale() {
-        return d3.scaleBand()
-                 .domain(this.bins)
-                 .range([0,200])
-                 .padding(0);
-      },
-      yScale() {
-        const scale = d3.scaleLinear()
-                .domain([0,1.2*this.maximumYields])
-                .range([-200,0]);
-        return scale;
-      },
-      pathStringX() {
-        let string = "M" + 0 + "," + 0;
-        for (const i of this.bins) {
-          string += "H"+this.xScale(i);
-          string += "V"+(-this.ticklength);
-          string += "M"+this.xScale(i)+","+0;
-          string += "H"+this.xScale(i);
-        }
-        string += "H200,0";
-        string += "V"+(-this.ticklength);
-        return string;
-      },
-      pathStringY() {
-        let string = "M" + 0 + "," + 0;
-        const ticks = this.yScale.ticks(5);
-        for (const tick of ticks) {
-          string += "V" + -(this.yScale(tick)+200);
-          string += "H" + (-this.ticklength);
-          string += "M" + 0 + "," + -(this.yScale(tick)+200);
-        }
-        string    += "V" + "-225";
-        return string;
       }
-    },  
+      return tot
+    },
+    maximumYields () {
+      const maxyields = Math.max(...this.totalYields)
+      const observed = this.observations.data
+      const maximumObserved = d3.max(observed, d => d + d ** 0.5)
+      return Math.max(maxyields, maximumObserved)
+    },
+    bins () {
+      const length = this.workspace.samples[0].data.length
+      const domain = Array.from({ length: length }, (e, i) => i)
+      return domain
+    },
+    xScale () {
+      return d3.scaleBand()
+        .domain(this.bins)
+        .range([0, 200])
+        .padding(0)
+    },
+    yScale () {
+      const scale = d3.scaleLinear()
+        .domain([0, 1.2 * this.maximumYields])
+        .range([-200, 0])
+      return scale
+    },
+    pathStringX () {
+      let string = 'M' + 0 + ',' + 0
+      for (const i of this.bins) {
+        string += 'H' + this.xScale(i)
+        string += 'V' + (-this.ticklength)
+        string += 'M' + this.xScale(i) + ',' + 0
+        string += 'H' + this.xScale(i)
+      }
+      string += 'H200,0'
+      string += 'V' + (-this.ticklength)
+      return string
+    },
+    pathStringY () {
+      let string = 'M' + 0 + ',' + 0
+      const ticks = this.yScale.ticks(5)
+      for (const tick of ticks) {
+        string += 'V' + -(this.yScale(tick) + 200)
+        string += 'H' + (-this.ticklength)
+        string += 'M' + 0 + ',' + -(this.yScale(tick) + 200)
+      }
+      string += 'V' + '-225'
+      return string
+    }
   }
+}
 </script>

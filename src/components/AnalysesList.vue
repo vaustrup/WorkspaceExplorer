@@ -4,35 +4,34 @@ export default {
   components: {
     AnalysisItem
   },
-  data() {
+  data () {
     return {
       workspaces: []
     }
   },
-  methods: {  
-    loadFiles: function() {
-      for (const f of event.target.files) { 
-        this.readFile(f);
+  methods: {
+    loadFiles: function () {
+      for (const f of event.target.files) {
+        this.readFile(f)
       };
     },
-    readFile: function(file) {
-      const vm = this;
-      const reader = new FileReader();
-      reader.onload = function() {
-        let workspace = {};
+    readFile: function (file) {
+      const vm = this
+      const reader = new FileReader()
+      reader.onload = function () {
+        let workspace = {}
         try {
-          workspace = JSON.parse(reader.result);
+          workspace = JSON.parse(reader.result)
+        } catch (e) {
+          console.log(e)
+          return
         }
-        catch (e) {
-          console.log(e);
-          return;
-        }
-        vm.workspaces.push({name: file.name, workspace: workspace});
+        vm.workspaces.push({ name: file.name, workspace: workspace })
       }
-      reader.readAsText(file);
+      reader.readAsText(file)
     },
-    deleteWorkspace: function(index) {
-      this.workspaces.splice(index,1);
+    deleteWorkspace: function (index) {
+      this.workspaces.splice(index, 1)
     }
   }
 }

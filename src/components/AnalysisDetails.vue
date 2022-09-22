@@ -29,55 +29,55 @@
 import PieChart from './PieChart.vue'
 import StackedPlot from './StackedPlot.vue'
 import SystDataPlot from './SystDataPlot.vue'
-  export default {
-    components: {
-      PieChart,
-      StackedPlot,
-      SystDataPlot,
-    },
-    props: {
-      processNames: Array,
-      inputData: Object,
-      observations: Array,
-      workspace: Object,
-    },
-    data() {
-      return {
-        systFilter: "",
-        systPage: 0,
-        channelNames: [],
-      }
-    },
-    computed: {
-      systnames() {
-        let names = [];
-        for (const channel of this.workspace.workspace.channels){
-          for(const sample of channel.samples){
-            for(const modifier of sample.modifiers) {
-              if(modifier.type === "lumi") {continue;}
-              if(modifier.type === "staterror") {continue;}
-              if(modifier.type === "normfactor") {continue;}
-              if(names.includes(modifier.name)) {continue;}
-              if(!modifier.name.includes(this.systFilter)) {continue;}
-              names.push(modifier.name);
-            }
+export default {
+  components: {
+    PieChart,
+    StackedPlot,
+    SystDataPlot
+  },
+  props: {
+    processNames: Array,
+    inputData: Object,
+    observations: Array,
+    workspace: Object
+  },
+  data () {
+    return {
+      systFilter: '',
+      systPage: 0,
+      channelNames: []
+    }
+  },
+  computed: {
+    systnames () {
+      const names = []
+      for (const channel of this.workspace.workspace.channels) {
+        for (const sample of channel.samples) {
+          for (const modifier of sample.modifiers) {
+            if (modifier.type === 'lumi') { continue }
+            if (modifier.type === 'staterror') { continue }
+            if (modifier.type === 'normfactor') { continue }
+            if (names.includes(modifier.name)) { continue }
+            if (!modifier.name.includes(this.systFilter)) { continue }
+            names.push(modifier.name)
           }
         }
-        names.sort();
-        return names;
-      },
-    },
-    methods: {
-      getChannelNames() {
-        for (const c of this.inputData) {
-          this.channelNames.push(c.name);
-        }
-      },
-    },
-    beforeMount() {
-      this.getChannelNames();
-    },
+      }
+      names.sort()
+      return names
+    }
+  },
+  methods: {
+    getChannelNames () {
+      for (const c of this.inputData) {
+        this.channelNames.push(c.name)
+      }
+    }
+  },
+  beforeMount () {
+    this.getChannelNames()
   }
+}
 </script>
 
 <style>
