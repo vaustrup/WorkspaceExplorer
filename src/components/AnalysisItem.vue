@@ -132,7 +132,7 @@ export default {
       for (const c of ws.channels) {
         for (const p of c.samples) {
           const yields = p.data.reduce((pv, cv) => pv + cv, 0)
-          if (processDict.hasOwnProperty(p.name)) {
+          if (Object.prototype.hasOwnProperty.call(processDict, p.name)) {
             processDict[p.name] += yields
           } else {
             processDict[p.name] = yields

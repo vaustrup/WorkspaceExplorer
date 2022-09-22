@@ -46,7 +46,7 @@ export default {
         }
       }
       for (const processName of this.processNames) {
-        if (!stackedArray[0].hasOwnProperty(processName)) {
+        if (!Object.prototype.hasOwnProperty.call(stackedArray[0], processName)) {
           for (const bin of this.bins) {
             stackedArray[bin][processName] = 0
           }
