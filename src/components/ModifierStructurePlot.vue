@@ -1,13 +1,19 @@
 <template>
-  <template v-for="channel in channels" :key="channel.name">
+  <template v-for="(channel, channelIndex) in channels" :key="channel.name">
     <h2>{{channel.name}}</h2>
-    <svg :height="length*modifiertypes[channel.name].length" :width="length*modifiernames.length">
-      <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
-        <rect v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]"/>
-      </template>
-    </svg>
-    <hr />
+    <g>
+      <svg :height="length*modifiertypes[channel.name].length" :width="length*modifiernames.length">
+        <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
+          <rect v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]"/>
+        </template>
+        <path fill="none" stroke="#000" :d="pathStringX[channelIndex]"></path>
+        <path fill="none" stroke="#000" :d="pathStringY[channelIndex]"></path>
+      </svg>
+    </g>
   </template>
+  <svg height="300" :width="length*modifiernames.length">
+    <text v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :x="0" :y="modifierIndex*this.length+0.5*this.length" transform="rotate(-90)" dominant-baseline="middle" text-anchor="end">{{modifiername}}</text>
+  </svg>
 </template>
 
 <script>
@@ -17,7 +23,8 @@ export default {
   },
   data () {
     return {
-      length: 20
+      length: 20,
+      ticklength: 5
     }
   },
   computed: {
@@ -34,6 +41,37 @@ export default {
         normfactor: 'rgb(213,94,0)' // vermilion
       }
       return modifierColor
+    },
+    pathStringX () {
+      const strings = Array.from({ length: this.channels.length }, u => (''))
+      let channelIndex = 0
+      for (const channel of this.channels) {
+        const yCoordinate = this.length * channel.samples.length
+        let string = 'M' + 0 + ',' + yCoordinate
+        for (let i = 1; i <= this.modifiernames.length; i++) {
+          string += 'H' + i * this.length
+          string += 'V' + (yCoordinate - this.ticklength)
+          string += 'M' + i * this.length + ',' + yCoordinate
+        }
+        strings[channelIndex] = string
+        channelIndex++
+      }
+      return strings
+    },
+    pathStringY () {
+      const strings = Array.from({ length: this.channels.length }, u => (''))
+      let channelIndex = 0
+      for (const channel of this.channels) {
+        let string = 'M' + 0 + ',' + 0
+        for (let i = 1; i <= channel.samples.length; i++) {
+          string += 'V' + (this.length * i)
+          string += 'H' + (this.ticklength)
+          string += 'M' + 0 + ',' + (this.length * i)
+        }
+        strings[channelIndex] = string
+        channelIndex++
+      }
+      return strings
     },
     modifiernames () {
       const names = []
