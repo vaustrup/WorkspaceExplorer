@@ -1,4 +1,12 @@
 <template>
+  <svg :height="length+20" :width="horizontalOffset+Object.keys(colors).length*175">
+    <g :transform="`translate(${horizontalOffset}, 0)`">
+      <template v-for="(color, colorindex) in Object.keys(colors)" :key="color">
+        <rect :height="length" :width="length" :fill="colors[color]" stroke="black" :y="0" :x="colorindex*175"/>
+        <text :y="0" :x="25+colorindex*175" dominant-baseline="hanging" text-anchor="begin">{{modifierStrings[color]}}</text>
+      </template>
+    </g>
+  </svg>
   <template v-for="(channel, channelIndex) in channels" :key="channel.name">
     <h2>{{channel.name}}</h2>
     <svg :height="length*modifiertypes[channel.name].length" :width="horizontalOffset+length*modifiernames.length+50">
@@ -42,12 +50,24 @@ export default {
         staterror: 'rgb(230,159,0)', // orange
         normsys: 'rgb(86,180,233)', // sky blue
         histosys: 'rgb(240,228,66)', // yellow
-        none: 'rgb(255,255,255)', // white
-        normhisto: 'rgb(0,158,115)', // blueish green
         shapesys: 'rgb(204,121,167)', // reddish purple
-        normfactor: 'rgb(213,94,0)' // vermilion
+        normhisto: 'rgb(0,158,115)', // blueish green
+        normfactor: 'rgb(213,94,0)', // vermilion
+        none: 'rgb(255,255,255)' // white
       }
       return modifierColor
+    },
+    modifierStrings () {
+      return {
+        lumi: 'lumi',
+        staterror: 'staterror',
+        normsys: 'normsys',
+        histosys: 'histosys',
+        shapesys: 'shapesys',
+        normhisto: 'histosys+normsys',
+        normfactor: 'normfactor',
+        none: 'none'
+      }
     },
     pathStringX () {
       const strings = Array.from({ length: this.channels.length }, u => (''))
