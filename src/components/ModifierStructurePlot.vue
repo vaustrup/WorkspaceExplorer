@@ -1,30 +1,34 @@
 <template>
-  <svg :height="length+20" :width="horizontalOffset+Object.keys(colors).length*175">
-    <g :transform="`translate(${horizontalOffset}, 0)`">
-      <template v-for="(color, colorindex) in Object.keys(colors)" :key="color">
-        <rect :height="length" :width="length" :fill="colors[color]" stroke="black" :y="0" :x="colorindex*175"/>
-        <text :y="0" :x="25+colorindex*175" dominant-baseline="hanging" text-anchor="begin">{{modifierStrings[color]}}</text>
-      </template>
-    </g>
-  </svg>
-  <template v-for="(channel, channelIndex) in channels" :key="channel.name">
-    <h2>{{channel.name}}</h2>
-    <svg :height="length*modifiertypes[channel.name].length" :width="horizontalOffset+length*modifiernames.length+50">
+  <div class="modifierstructure">
+    <svg :height="length+20" :width="horizontalOffset+Object.keys(colors).length*175">
       <g :transform="`translate(${horizontalOffset}, 0)`">
-        <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
-          <rect v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :class="{ isnothighlighted: !rectisHighlighted(processIndex, channelIndex, modifierIndex) }" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]" @mouseover="highlight(processIndex, channelIndex, modifierIndex)" @mouseleave="unhighlight"/>
+        <template v-for="(color, colorindex) in Object.keys(colors)" :key="color">
+          <rect :height="length" :width="length" :fill="colors[color]" stroke="black" :y="0" :x="colorindex*175"/>
+          <text :y="0" :x="25+colorindex*175" dominant-baseline="hanging" text-anchor="begin">{{modifierStrings[color]}}</text>
         </template>
-        <path fill="none" stroke="#000" :d="pathStringX[channelIndex]"></path>
-        <path fill="none" stroke="#000" :d="pathStringY[channelIndex]"></path>
       </g>
-      <text v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name" :class="{ isnothighlighted: !processisHighlighted(processIndex, channelIndex) }" :x="0" :y="processIndex*length+length">{{process.name}}</text>
     </svg>
-  </template>
-  <svg height="300" :width="horizontalOffset+length*modifiernames.length+50">
-    <g :transform="`translate(${horizontalOffset}, 0)`">
-      <text v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :class="{ isnothighlighted: !modifierisHighlighted(modifierIndex) }" :x="0" :y="modifierIndex*length+0.5*length" transform="rotate(-90)" dominant-baseline="middle" text-anchor="end">{{modifiername}}</text>
-  </g>
-  </svg>
+    <template v-for="(channel, channelIndex) in channels" :key="channel.name">
+      <h2>{{channel.name}}</h2>
+      <svg :height="length*modifiertypes[channel.name].length" :width="horizontalOffset+length*modifiernames.length+50">
+        <g :transform="`translate(${horizontalOffset}, 0)`">
+          <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
+            <template v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername">
+              <rect :class="{ isnothighlighted: !rectisHighlighted(processIndex, channelIndex, modifierIndex), ispassive: isPassive(processIndex, channelIndex, modifierIndex) }" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]" @mouseover="highlight(processIndex, channelIndex, modifierIndex)" @mouseleave="unhighlight"/>
+            </template>
+          </template>
+          <path fill="none" stroke="#000" :d="pathStringX[channelIndex]"></path>
+          <path fill="none" stroke="#000" :d="pathStringY[channelIndex]"></path>
+        </g>
+        <text v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name" :class="{ isnothighlighted: !processisHighlighted(processIndex, channelIndex) }" :x="0" :y="processIndex*length+length">{{process.name}}</text>
+      </svg>
+    </template>
+    <svg height="300" :width="horizontalOffset+length*modifiernames.length+50">
+      <g :transform="`translate(${horizontalOffset}, 0)`">
+        <text v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :class="{ isnothighlighted: !modifierisHighlighted(modifierIndex) }" :x="0" :y="modifierIndex*length+0.5*length" transform="rotate(-90)" dominant-baseline="middle" text-anchor="end">{{modifiername}}</text>
+    </g>
+    </svg>
+  </div>
 </template>
 
 <script>
@@ -110,6 +114,7 @@ export default {
           }
         }
       }
+      names.sort()
       return names
     },
     modifiertypes () {
@@ -164,6 +169,11 @@ export default {
       return (processindex, channelindex, modifierindex) => {
         return ((this.highlightedProcess === '' && this.highlightedChannel === '' && this.highlightedModifier === '') || (this.highlightedProcess === this.channels[channelindex].samples[processindex].name && this.highlightedChannel === this.channels[channelindex].name && this.highlightedModifier === this.modifiernames[modifierindex]))
       }
+    },
+    isPassive () {
+      return (processindex, channelindex, modifierindex) => {
+        return ((this.highlightedProcess === this.channels[channelindex].samples[processindex].name && this.highlightedChannel === this.channels[channelindex].name) || (this.highlightedModifier === this.modifiernames[modifierindex]))
+      }
     }
   },
   methods: {
@@ -182,12 +192,21 @@ export default {
 </script>
 
 <style>
+  rect{
+    stroke-width: 2;
+  }
+  rect.ispassive{
+    stroke: red;
+  }
   rect.isnothighlighted{
     fill-opacity:0.5;
-    transition: fill-opacity 0.5s ease;
+    stroke-opacity: 0.3;
+    stroke-width: 1;
   }
   text.isnothighlighted{
     fill: grey;
-    transition: fill 0.5s ease;
+  }
+  .modifierstructure{
+    overflow-x: scroll;
   }
 </style>
