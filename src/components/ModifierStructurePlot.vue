@@ -1,18 +1,21 @@
 <template>
   <template v-for="(channel, channelIndex) in channels" :key="channel.name">
     <h2>{{channel.name}}</h2>
-    <g>
-      <svg :height="length*modifiertypes[channel.name].length" :width="length*modifiernames.length">
+    <svg :height="length*modifiertypes[channel.name].length" :width="horizontalOffset+length*modifiernames.length+50">
+      <g :transform="`translate(${horizontalOffset}, 0)`">
         <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
-          <rect v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]"/>
+          <rect v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :class="{ isnothighlighted: !rectisHighlighted(processIndex, channelIndex, modifierIndex) }" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]" @mouseover="highlight(processIndex, channelIndex, modifierIndex)" @mouseleave="unhighlight"/>
         </template>
         <path fill="none" stroke="#000" :d="pathStringX[channelIndex]"></path>
         <path fill="none" stroke="#000" :d="pathStringY[channelIndex]"></path>
-      </svg>
-    </g>
+      </g>
+      <text v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name" :class="{ isnothighlighted: !processisHighlighted(processIndex, channelIndex) }" :x="0" :y="processIndex*length+length">{{process.name}}</text>
+    </svg>
   </template>
-  <svg height="300" :width="length*modifiernames.length">
-    <text v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :x="0" :y="modifierIndex*this.length+0.5*this.length" transform="rotate(-90)" dominant-baseline="middle" text-anchor="end">{{modifiername}}</text>
+  <svg height="300" :width="horizontalOffset+length*modifiernames.length+50">
+    <g :transform="`translate(${horizontalOffset}, 0)`">
+      <text v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername" :class="{ isnothighlighted: !modifierisHighlighted(modifierIndex) }" :x="0" :y="modifierIndex*length+0.5*length" transform="rotate(-90)" dominant-baseline="middle" text-anchor="end">{{modifiername}}</text>
+  </g>
   </svg>
 </template>
 
@@ -24,7 +27,11 @@ export default {
   data () {
     return {
       length: 20,
-      ticklength: 5
+      ticklength: 5,
+      horizontalOffset: 200,
+      highlightedProcess: '',
+      highlightedChannel: '',
+      highlightedModifier: ''
     }
   },
   computed: {
@@ -122,7 +129,45 @@ export default {
         regions[channel.name] = samples
       }
       return regions
+    },
+    processisHighlighted () {
+      return (processindex, channelindex) => {
+        return ((this.highlightedProcess === '' && this.highlightedChannel === '') || (this.highlightedProcess === this.channels[channelindex].samples[processindex].name && this.highlightedChannel === this.channels[channelindex].name))
+      }
+    },
+    modifierisHighlighted () {
+      return (modifierindex) => {
+        return (this.highlightedModifier === '' || this.highlightedModifier === this.modifiernames[modifierindex])
+      }
+    },
+    rectisHighlighted () {
+      return (processindex, channelindex, modifierindex) => {
+        return ((this.highlightedProcess === '' && this.highlightedChannel === '' && this.highlightedModifier === '') || (this.highlightedProcess === this.channels[channelindex].samples[processindex].name && this.highlightedChannel === this.channels[channelindex].name && this.highlightedModifier === this.modifiernames[modifierindex]))
+      }
+    }
+  },
+  methods: {
+    highlight (processIndex, channelIndex, modifierIndex) {
+      this.highlightedProcess = this.channels[channelIndex].samples[processIndex].name
+      this.highlightedChannel = this.channels[channelIndex].name
+      this.highlightedModifier = this.modifiernames[modifierIndex]
+    },
+    unhighlight () {
+      this.highlightedProcess = ''
+      this.highlightedChannel = ''
+      this.highlightedModifier = ''
     }
   }
 }
 </script>
+
+<style>
+  rect.isnothighlighted{
+    fill-opacity:0.5;
+    transition: fill-opacity 0.5s ease;
+  }
+  text.isnothighlighted{
+    fill: grey;
+    transition: fill 0.5s ease;
+  }
+</style>
