@@ -1,10 +1,12 @@
 <template>
   <div class="modifierstructure">
+    <input type="checkbox" v-model="interactive" id="interactive"/>
+    <label for="interactive">Interactive modifier structure  (may cause performance issues)</label>
     <svg :height="length+20" :width="horizontalOffset+Object.keys(colors).length*175">
       <g :transform="`translate(${horizontalOffset}, 0)`">
-        <template v-for="(color, colorindex) in Object.keys(colors)" :key="color">
-          <rect :height="length" :width="length" :fill="colors[color]" stroke="black" :y="0" :x="colorindex*175"/>
-          <text :y="0" :x="25+colorindex*175" dominant-baseline="hanging" text-anchor="begin">{{modifierStrings[color]}}</text>
+        <template v-for="(color, type, colorindex) in colors" :key="color">
+          <rect :height="length" :width="length" :fill="color" stroke="black" :y="0" :x="colorindex*175"/>
+          <text :y="0" :x="25+colorindex*175" dominant-baseline="hanging" text-anchor="begin">{{modifierStrings[type]}}</text>
         </template>
       </g>
     </svg>
@@ -14,13 +16,14 @@
         <g :transform="`translate(${horizontalOffset}, 0)`">
           <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
             <template v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername">
-              <rect :class="{ isnothighlighted: !rectisHighlighted(processIndex, channelIndex, modifierIndex), ispassive: isPassive(processIndex, channelIndex, modifierIndex) }" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]" @mouseover="highlight(processIndex, channelIndex, modifierIndex)" @mouseleave="unhighlight"/>
+              <rect v-if="isinteractive" :class="{ isnothighlighted: !rectisHighlighted(processIndex, channelIndex, modifierIndex), ispassive: isPassive(processIndex, channelIndex, modifierIndex) }" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]" @mouseover="highlight(processIndex, channelIndex, modifierIndex)" @mouseleave="unhighlight"/>
+              <rect v-else :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]"/>
             </template>
           </template>
           <path fill="none" stroke="#000" :d="pathStringX[channelIndex]"></path>
           <path fill="none" stroke="#000" :d="pathStringY[channelIndex]"></path>
         </g>
-        <text v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name" :class="{ isnothighlighted: !processisHighlighted(processIndex, channelIndex) }" :x="0" :y="processIndex*length+length">{{process.name}}</text>
+        <text v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name" :class="{ isnothighlighted: !processisHighlighted(processIndex, channelIndex) }" :x="0" :y="processIndex*length+0.8*length">{{process.name}}</text>
       </svg>
     </template>
     <svg height="300" :width="horizontalOffset+length*modifiernames.length+50">
@@ -41,12 +44,16 @@ export default {
       length: 20,
       ticklength: 5,
       horizontalOffset: 200,
-      highlightedProcess: '',
-      highlightedChannel: '',
-      highlightedModifier: ''
+      highlightedProcess: -1,
+      highlightedChannel: -1,
+      highlightedModifier: -1,
+      interactive: false
     }
   },
   computed: {
+    isinteractive () {
+      return this.interactive
+    },
     colors () {
       // use the same color scheme as cabinetry
       const modifierColor = {
@@ -157,35 +164,43 @@ export default {
     },
     processisHighlighted () {
       return (processindex, channelindex) => {
-        return ((this.highlightedProcess === '' && this.highlightedChannel === '') || (this.highlightedProcess === this.channels[channelindex].samples[processindex].name && this.highlightedChannel === this.channels[channelindex].name))
+        return (
+          (this.highlightedProcess === -1 && this.highlightedChannel === -1) ||
+          (this.highlightedProcess === processindex && this.highlightedChannel === channelindex))
       }
     },
     modifierisHighlighted () {
       return (modifierindex) => {
-        return (this.highlightedModifier === '' || this.highlightedModifier === this.modifiernames[modifierindex])
+        return (this.highlightedModifier === -1 || this.highlightedModifier === modifierindex)
       }
     },
     rectisHighlighted () {
+      // highlight a rectangle on hover
       return (processindex, channelindex, modifierindex) => {
-        return ((this.highlightedProcess === '' && this.highlightedChannel === '' && this.highlightedModifier === '') || (this.highlightedProcess === this.channels[channelindex].samples[processindex].name && this.highlightedChannel === this.channels[channelindex].name && this.highlightedModifier === this.modifiernames[modifierindex]))
+        return (
+          (this.highlightedProcess === -1 && this.highlightedChannel === -1 && this.highlightedModifier === -1) ||
+          (this.highlightedProcess === processindex && this.highlightedChannel === channelindex && this.highlightedModifier === modifierindex))
       }
     },
     isPassive () {
+      // highlight a rectangle with red borders when it is in a horizontal or vertical line with the selected rectangle
       return (processindex, channelindex, modifierindex) => {
-        return ((this.highlightedProcess === this.channels[channelindex].samples[processindex].name && this.highlightedChannel === this.channels[channelindex].name) || (this.highlightedModifier === this.modifiernames[modifierindex]))
+        return (
+          (this.highlightedProcess === processindex && this.highlightedChannel === channelindex) ||
+          (this.highlightedModifier === modifierindex))
       }
     }
   },
   methods: {
     highlight (processIndex, channelIndex, modifierIndex) {
-      this.highlightedProcess = this.channels[channelIndex].samples[processIndex].name
-      this.highlightedChannel = this.channels[channelIndex].name
-      this.highlightedModifier = this.modifiernames[modifierIndex]
+      this.highlightedProcess = processIndex
+      this.highlightedChannel = channelIndex
+      this.highlightedModifier = modifierIndex
     },
     unhighlight () {
-      this.highlightedProcess = ''
-      this.highlightedChannel = ''
-      this.highlightedModifier = ''
+      this.highlightedProcess = -1
+      this.highlightedChannel = -1
+      this.highlightedModifier = -1
     }
   }
 }
