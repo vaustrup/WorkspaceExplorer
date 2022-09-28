@@ -12,7 +12,12 @@
   <div style="text-align:center;">
     <h2>Systematic Variations</h2>
   </div>
-  <ModifierStructurePlot :channels="workspace.workspace.channels" />
+  <span class="detailbutton" @click="toggleModifierStructureView()"><h2 v-if="!isModifierStructureView()">Show Modifier Structure</h2><h2 v-else>Hide Modifier Structure</h2></span>
+  <Transition>
+    <span v-if="isModifierStructureView()">
+      <ModifierStructurePlot :channels="workspace.workspace.channels" />
+    </span>
+  </Transition>
   <div style="text-align:center;">
     <input type="text" v-model="systFilter" placeholder="Filter Systematic Variations" />
     <input type="number" min=0 :max="parseInt(systnames.length/10)" v-model="systPage" placeholder="Switch systematics" />
@@ -50,7 +55,8 @@ export default {
     return {
       systFilter: '',
       systPage: 0,
-      channelNames: []
+      channelNames: [],
+      modifierStructureView: false
     }
   },
   computed: {
@@ -77,6 +83,12 @@ export default {
       for (const c of this.inputData) {
         this.channelNames.push(c.name)
       }
+    },
+    toggleModifierStructureView () {
+      this.modifierStructureView = !this.modifierStructureView
+    },
+    isModifierStructureView () {
+      return this.modifierStructureView
     }
   },
   beforeMount () {

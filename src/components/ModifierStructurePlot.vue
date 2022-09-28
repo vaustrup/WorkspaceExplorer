@@ -1,7 +1,7 @@
 <template>
   <div class="modifierstructure">
-    <input type="checkbox" v-model="interactive" id="interactive"/>
-    <label for="interactive">Interactive modifier structure  (may cause performance issues)</label>
+    <input type="checkbox" v-model="interactive" id="interactive" />
+    <label for="interactive">Interactive modifier structure (may result in performance issues)</label>
     <svg :height="length+20" :width="horizontalOffset+Object.keys(colors).length*175">
       <g :transform="`translate(${horizontalOffset}, 0)`">
         <template v-for="(color, type, colorindex) in colors" :key="color">
@@ -14,10 +14,20 @@
       <h2>{{channel.name}}</h2>
       <svg :height="length*modifiertypes[channel.name].length" :width="horizontalOffset+length*modifiernames.length+50">
         <g :transform="`translate(${horizontalOffset}, 0)`">
+          <template v-if="interactive">
+            <template v-if="highlightedProcess!==-1">
+              <rect v-if="highlightedChannel===channelIndex" :height="length" :width="length" :x="highlightedModifier*length" :y="highlightedProcess*length" stroke="red" :fill="colors[modifiertypes[channel.name][highlightedProcess].types[modifiernames[highlightedModifier]]]"/>
+              <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
+                <rect :height="length" :width="length" :x="highlightedModifier*length" :y="processIndex*length" class="passive" />
+              </template>
+              <template v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername">
+                <rect :height="length" :width="length" :y="highlightedProcess*length" :x="modifierIndex*length" class="passive" />
+              </template>
+            </template>
+          </template>
           <template v-for="(process, processIndex) in modifiertypes[channel.name]" :key="process.name">
             <template v-for="(modifiername, modifierIndex) in modifiernames" :key="modifiername">
-              <rect v-if="isinteractive" :class="{ isnothighlighted: !rectisHighlighted(processIndex, channelIndex, modifierIndex), ispassive: isPassive(processIndex, channelIndex, modifierIndex) }" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]" @mouseover="highlight(processIndex, channelIndex, modifierIndex)" @mouseleave="unhighlight"/>
-              <rect v-else :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]"/>
+              <rect :fill-opacity="fillOpacity" :height="length" :width="length" :x="modifierIndex*length" :y="processIndex*length" :fill="colors[process.types[modifiername]]" @mouseover="highlight(processIndex, channelIndex, modifierIndex)" @mouseleave="unhighlight"/>
             </template>
           </template>
           <path fill="none" stroke="#000" :d="pathStringX[channelIndex]"></path>
@@ -51,8 +61,10 @@ export default {
     }
   },
   computed: {
-    isinteractive () {
-      return this.interactive
+    fillOpacity () {
+      if (!this.interactive) { return 1.0 }
+      if (this.highlightedChannel !== -1) { return 0.5 }
+      return 1.0
     },
     colors () {
       // use the same color scheme as cabinetry
@@ -164,30 +176,16 @@ export default {
     },
     processisHighlighted () {
       return (processindex, channelindex) => {
+        if (!this.interactive) { return true }
         return (
-          (this.highlightedProcess === -1 && this.highlightedChannel === -1) ||
+          this.highlightedChannel === -1 ||
           (this.highlightedProcess === processindex && this.highlightedChannel === channelindex))
       }
     },
     modifierisHighlighted () {
       return (modifierindex) => {
+        if (!this.interactive) { return true }
         return (this.highlightedModifier === -1 || this.highlightedModifier === modifierindex)
-      }
-    },
-    rectisHighlighted () {
-      // highlight a rectangle on hover
-      return (processindex, channelindex, modifierindex) => {
-        return (
-          (this.highlightedProcess === -1 && this.highlightedChannel === -1 && this.highlightedModifier === -1) ||
-          (this.highlightedProcess === processindex && this.highlightedChannel === channelindex && this.highlightedModifier === modifierindex))
-      }
-    },
-    isPassive () {
-      // highlight a rectangle with red borders when it is in a horizontal or vertical line with the selected rectangle
-      return (processindex, channelindex, modifierindex) => {
-        return (
-          (this.highlightedProcess === processindex && this.highlightedChannel === channelindex) ||
-          (this.highlightedModifier === modifierindex))
       }
     }
   },
@@ -210,11 +208,9 @@ export default {
   rect{
     stroke-width: 2;
   }
-  rect.ispassive{
+  rect.passive{
     stroke: red;
-  }
-  rect.isnothighlighted{
-    fill-opacity:0.5;
+    fill-opacity:0.0;
     stroke-opacity: 0.3;
     stroke-width: 1;
   }
