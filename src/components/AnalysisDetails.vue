@@ -4,7 +4,11 @@
     <template v-for="(channel, channelindex) in inputData" :key="channel.name">
       <div class="region">
         <PieChart :processNames="processNames" :inputData="channel" />
-        <StackedPlot :processNames="processNames" :workspace="workspace.workspace.channels[channelindex]" :observations="workspace.workspace.observations[channelindex]" :systNames="systnames"/>
+        <StackedPlot
+          :processNames="processNames"
+          :workspace="workspace.workspace.channels[channelindex]"
+          :observations="workspace.workspace.observations[channelindex]"
+          :systNames="systnames" />
       </div>
     </template>
   </div>
@@ -12,9 +16,12 @@
   <div style="text-align:center;">
     <h2>Systematic Variations</h2>
   </div>
-  <span class="detailbutton" @click="toggleModifierStructureView()"><h2 v-if="!isModifierStructureView()">Show Modifier Structure</h2><h2 v-else>Hide Modifier Structure</h2></span>
+  <span class="detailbutton" @click="toggleModifierStructureView()">
+    <h2 v-if="!modifierStructureView">Show Modifier Structure</h2>
+    <h2 v-else>Hide Modifier Structure</h2>
+  </span>
   <Transition>
-    <span v-if="isModifierStructureView()">
+    <span v-if="modifierStructureView">
       <ModifierStructurePlot :channels="workspace.workspace.channels" />
     </span>
   </Transition>
@@ -26,7 +33,11 @@
     <template v-for="(channel, channelindex) in inputData" :key="channel.name">
       <div class="region">
         <template v-for="(systname, systindex) in systnames" :key="systname">
-          <SystDataPlot v-if="parseInt(systindex/10)===systPage" :workspace="workspace.workspace.channels[channelindex]" :observations="workspace.workspace.observations[channelindex]" :systname="systname"/>
+          <SystDataPlot
+            v-if="parseInt(systindex/10)===systPage"
+            :workspace="workspace.workspace.channels[channelindex]"
+            :observations="workspace.workspace.observations[channelindex]"
+            :systname="systname"/>
         </template>
       </div>
     </template>
@@ -86,9 +97,6 @@ export default {
     },
     toggleModifierStructureView () {
       this.modifierStructureView = !this.modifierStructureView
-    },
-    isModifierStructureView () {
-      return this.modifierStructureView
     }
   },
   beforeMount () {

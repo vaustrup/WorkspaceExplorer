@@ -10,7 +10,7 @@ export default {
     }
   },
   methods: {
-    loadFiles: function () {
+    loadFiles: function (event) {
       for (const f of event.target.files) {
         this.readFile(f)
       };
@@ -41,11 +41,17 @@ export default {
   <div class="card">
     <div class="card-body overview">
       <div class="card-text">
-        <span v-if="workspaces.length!==0">Currently exploring {{this.workspaces.length}} workspace<span v-if="workspaces.length!==1">s</span>:</span>
-        <span v-if="workspaces.length===0">No workspaces loaded yet. Add some to start exploring!</span>
+        <span v-if="workspaces.length!==0">
+          Currently exploring {{this.workspaces.length}} workspace<span v-if="workspaces.length!==1">s</span>:
+        </span>
+        <span v-else>
+          No workspaces loaded yet. Add some to start exploring!
+        </span>
       </div>
       <ul class="list-group">
-        <li class="list-group-item" v-for="(workspace, workspaceindex) in workspaces" :key="workspace.name">{{workspace.name}} <span class="deletebutton" @click="deleteWorkspace(workspaceindex)">&#x1f5d1;</span></li>
+        <li class="list-group-item" v-for="(workspace, workspaceindex) in workspaces" :key="workspace.name">
+          {{workspace.name}} <span class="deletebutton" @click="deleteWorkspace(workspaceindex)">&#x1f5d1;</span>
+        </li>
       </ul>
       <div class="addbutton">
         <label class="btn btn-outline-primary btn-lg">
@@ -88,9 +94,4 @@ export default {
   .addbutton {
     padding:1em;
   }
-  /* When the visually hidden child input has focus, style the parent.
-  label:focus-within {
-      outline: 5px solid;
-  } */
-
 </style>

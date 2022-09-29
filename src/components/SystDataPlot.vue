@@ -3,12 +3,35 @@
   <svg :height="350">
     <g transform="translate(50, 300)">
       <template v-for="bin in bins" :key="bin">
-        <line :x1="xScale(bin)" :x2="xScale(bin)+xScale.bandwidth()" :y1="Math.abs(yScale(totalYields[bin]))-200" :y2="Math.abs(yScale(totalYields[bin]))-200" stroke="black" />
-        <line :x1="xScale(bin)" :x2="xScale(bin)+xScale.bandwidth()" :y1="Math.abs(yScale(totalSystYields[bin][0]))-200" :y2="Math.abs(yScale(totalSystYields[bin][0]))-200" stroke="red" />
-        <line :x1="xScale(bin)" :x2="xScale(bin)+xScale.bandwidth()" :y1="Math.abs(yScale(totalSystYields[bin][1]))-200" :y2="Math.abs(yScale(totalSystYields[bin][1]))-200" stroke="blue" />
-        <circle :cx="xScale(bin)+0.5*xScale.bandwidth()" :cy="Math.abs(yScale(observations.data[bin]))-200" :r="5" />
-        <line :x1="xScale(bin)+0.5*xScale.bandwidth()" :y1="Math.abs(yScale(observations.data[bin]-observations.data[bin]**0.5))-200" :x2="xScale(bin)+0.5*xScale.bandwidth()" :y2="Math.abs(yScale(observations.data[bin]+observations.data[bin]**0.5))-200" stroke="black"/>
-        <text :x="25" :y="-xScale(bin)-0.5*xScale.bandwidth()" transform="rotate(90)" dominant-baseline="middle" text-anchor="middle">bin {{bin}}</text>
+        <line :x1="xScale(bin)"
+          :x2="xScale(bin)+xScale.bandwidth()"
+          :y1="Math.abs(yScale(totalYields[bin]))-200"
+          :y2="Math.abs(yScale(totalYields[bin]))-200"
+          stroke="black" />
+        <line :x1="xScale(bin)"
+          :x2="xScale(bin)+xScale.bandwidth()"
+          :y1="Math.abs(yScale(totalSystYields[bin][0]))-200"
+          :y2="Math.abs(yScale(totalSystYields[bin][0]))-200"
+          stroke="red" />
+        <line :x1="xScale(bin)"
+          :x2="xScale(bin)+xScale.bandwidth()"
+          :y1="Math.abs(yScale(totalSystYields[bin][1]))-200"
+          :y2="Math.abs(yScale(totalSystYields[bin][1]))-200"
+          stroke="blue" />
+        <circle :cx="xScale(bin)+0.5*xScale.bandwidth()"
+          :cy="Math.abs(yScale(observations.data[bin]))-200"
+          :r="5" />
+        <line :x1="xScale(bin)+0.5*xScale.bandwidth()"
+          :y1="Math.abs(yScale(observations.data[bin]-observations.data[bin]**0.5))-200"
+          :x2="xScale(bin)+0.5*xScale.bandwidth()" :y2="Math.abs(yScale(observations.data[bin]+observations.data[bin]**0.5))-200"
+          stroke="black"/>
+        <text :x="25"
+          :y="-xScale(bin)-0.5*xScale.bandwidth()"
+          transform="rotate(90)"
+          dominant-baseline="middle"
+          text-anchor="middle">
+            bin {{bin}}
+        </text>
       </template>
       <path fill="none" stroke="#000" :d="pathStringX"></path>
       <path fill="none" stroke="#000" :d="pathStringY"></path>

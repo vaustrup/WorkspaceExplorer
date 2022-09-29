@@ -3,11 +3,26 @@
     <g transform="translate(50, 300)">
       <template v-for="bin in bins" :key="bin">
         <template v-for="(process, processindex) in processNames" :key="process">
-          <rect :height="yScale(stackedData[processindex][bin][1])-yScale(stackedData[processindex][bin][0])" :x="xScale(bin)" :y="yScale(stackedData[processindex][bin][0])-yScale(stackedData[stackedData.length-1][bin][1])" :width="xScale.bandwidth()" :fill="color(process)"/>
+          <rect :height="yScale(stackedData[processindex][bin][1])-yScale(stackedData[processindex][bin][0])"
+            :x="xScale(bin)"
+            :y="yScale(stackedData[processindex][bin][0])-yScale(stackedData[stackedData.length-1][bin][1])"
+            :width="xScale.bandwidth()"
+            :fill="color(process)"/>
         </template>
-        <rect :height="yScale(uncertainty_up[bin])-yScale(uncertainty_down[bin])" :width="xScale.bandwidth()" :x="xScale(bin)" :y="yScale(stackedData[0][bin][0])-yScale(uncertainty_up[bin])" fill="black" :opacity="0.5" />
-        <circle :cx="xScale(bin)+0.5*xScale.bandwidth()" :cy="Math.abs(yScale(observations.data[bin]))-200" :r="5" />
-        <line :x1="xScale(bin)+0.5*xScale.bandwidth()" :y1="Math.abs(yScale(observations.data[bin]-observations.data[bin]**0.5))-200" :x2="xScale(bin)+0.5*xScale.bandwidth()" :y2="Math.abs(yScale(observations.data[bin]+observations.data[bin]**0.5))-200" stroke="black"/>
+        <rect :height="yScale(uncertainty_up[bin])-yScale(uncertainty_down[bin])"
+          :width="xScale.bandwidth()"
+          :x="xScale(bin)"
+          :y="yScale(stackedData[0][bin][0])-yScale(uncertainty_up[bin])"
+          fill="black"
+          :opacity="0.5" />
+        <circle :cx="xScale(bin)+0.5*xScale.bandwidth()"
+          :cy="Math.abs(yScale(observations.data[bin]))-200"
+          :r="5" />
+        <line :x1="xScale(bin)+0.5*xScale.bandwidth()"
+          :y1="Math.abs(yScale(observations.data[bin]-observations.data[bin]**0.5))-200"
+          :x2="xScale(bin)+0.5*xScale.bandwidth()"
+          :y2="Math.abs(yScale(observations.data[bin]+observations.data[bin]**0.5))-200"
+          stroke="black"/>
       </template>
       <path fill="none" stroke="#000" :d="pathStringX"></path>
       <path fill="none" stroke="#000" :d="pathStringY"></path>
@@ -18,7 +33,6 @@
 </template>
 
 <script>
-//
 import * as d3 from 'd3'
 export default {
   props: {
@@ -56,6 +70,7 @@ export default {
         .keys(this.processNames)(stackedArray)
       return data
     },
+    // uncertainty band currently implemented as flat 20 percent error band
     uncertainty_up () {
       const length = this.workspace.samples[0].data.length
       const absUnc = Array.from({ length }, u => (0))

@@ -103,18 +103,59 @@ export default {
   <svg :width="1000" :height="channelNames.length*50+50">
     <g transform="translate(250, 10)">
       <template v-for="(process, processindex) in stackedData">
-        <rect v-for="(channel, channelindex) in process" :key="channelNames[channelindex]" :height="yScale.bandwidth()" :x="xScale(channel[0])" :y="yScale(channelNames[channelindex])" :width="xScale(channel[1])-xScale(channel[0])" :fill="color(processNames[processindex])" :class="{ isnothighlighted: !processisHighlighted(processindex) }" @mouseover="highlight(processindex)" @mouseleave="unhighlight"/>
+        <rect v-for="(channel, channelindex) in process"
+          :key="channelNames[channelindex]"
+          :height="yScale.bandwidth()"
+          :x="xScale(channel[0])"
+          :y="yScale(channelNames[channelindex])"
+          :width="xScale(channel[1])-xScale(channel[0])"
+          :fill="color(processNames[processindex])"
+          :class="{ isnothighlighted: !processisHighlighted(processindex) }"
+          @mouseover="highlight(processindex)"
+          @mouseleave="unhighlight"/>
       </template>
-      <path fill="none" stroke="#000"
-            :d="pathStringX"></path>
-      <text v-for="tick in parseInt(ticks)" :key="tick" :y="yScale(channelNames[channelNames.length-1])+barHeight+xlabeloffset" :x="xScale((tick-1)*20)" dominant-baseline="middle" text-anchor="middle">{{(tick-1)*20}}</text>
-      <text :y="yScale(channelNames[channelNames.length-1])+barHeight+xtitleoffset" :x="xScale(50)" dominant-baseline="middle" text-anchor="middle">Relative Contributions in %</text>
-      <path fill="none" stroke="#000"
-            :d="pathStringY"></path>
-      <text v-for="channel in channelNames" :key="channel" :x="-10" :y="yScale(channel)+barHeight/2" dominant-baseline="middle" text-anchor="end">{{channel}}</text>
+      <path fill="none" stroke="#000" :d="pathStringX"></path>
+      <text v-for="tick in parseInt(ticks)"
+        :key="tick"
+        :y="yScale(channelNames[channelNames.length-1])+barHeight+xlabeloffset"
+        :x="xScale((tick-1)*20)"
+        dominant-baseline="middle"
+        text-anchor="middle">
+          {{(tick-1)*20}}
+      </text>
+      <text :y="yScale(channelNames[channelNames.length-1])+barHeight+xtitleoffset"
+        :x="xScale(50)"
+        dominant-baseline="middle"
+        text-anchor="middle">
+          Relative Contributions in %
+      </text>
+      <path fill="none" stroke="#000" :d="pathStringY"></path>
+      <text v-for="channel in channelNames"
+        :key="channel"
+        :x="-10"
+        :y="yScale(channel)+barHeight/2"
+        dominant-baseline="middle"
+        text-anchor="end">
+          {{channel}}
+      </text>
       <template v-for="(process, processindex) in stackedData" :key="processNames[processindex]">
-        <rect height="20" width="20" :fill="color(processNames[processindex])" x="550" :y="25*processindex" :id="processNames[processindex]" :class="{ isnothighlighted: !processisHighlighted(processindex) }" @mouseover="highlight(processindex)" @mouseleave="unhighlight"/>
-        <text x="580" :y="15+25*processindex" :id="processNames[processindex]" :class="{ isnothighlighted: !processisHighlighted(processindex) }" @mouseover="highlight(processindex)" @mouseleave="unhighlight">{{processNames[processindex]}}</text>
+        <rect height="20"
+          width="20"
+          :fill="color(processNames[processindex])"
+          x="550"
+          :y="25*processindex"
+          :id="processNames[processindex]"
+          :class="{ isnothighlighted: !processisHighlighted(processindex) }"
+          @mouseover="highlight(processindex)"
+          @mouseleave="unhighlight"/>
+        <text x="580"
+          :y="15+25*processindex"
+          :id="processNames[processindex]"
+          :class="{ isnothighlighted: !processisHighlighted(processindex) }"
+          @mouseover="highlight(processindex)"
+          @mouseleave="unhighlight">
+            {{processNames[processindex]}}
+        </text>
       </template>
     </g>
   </svg>
