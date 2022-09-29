@@ -6,7 +6,8 @@ export default {
   },
   data () {
     return {
-      workspaces: []
+      workspaces: [],
+      hepdataid: '2077557'
     }
   },
   methods: {
@@ -30,9 +31,26 @@ export default {
       }
       reader.readAsText(file)
     },
+    readFileFromHEPData: async function () {
+      const hepdataurl = 'https://www.hepdata.net/record/ins' + this.hepdataid + '?format=json'
+      const hepdataentry = await (await fetch(hepdataurl)).json()
+      console.log(hepdataentry)
+      const analyses = hepdataentry.record.analyses.filter(analysis => analysis.type === 'HistFactory')
+      let hepdataIndex = 1
+      for (const analysis of analyses) {
+        const response = await (await fetch(analysis.analysis.replace('landing_page=true', 'format=json'))).json()
+        const workspace = JSON.parse(response.file_contents)
+        console.log(workspace)
+        this.workspaces.push({ name: 'HEPdata ID: ' + this.hepdataid + ', workspace: ' + hepdataIndex, workspace })
+        hepdataIndex++
+      }
+    },
     deleteWorkspace: function (index) {
       this.workspaces.splice(index, 1)
     }
+  },
+  beforeMount () {
+    this.readFileFromHEPData()
   }
 }
 </script>
@@ -50,8 +68,15 @@ export default {
       <div class="addbutton">
         <label class="btn btn-outline-primary btn-lg">
             <input type="file" @change="loadFiles" multiple/>
-            Add New Workspaces
+            Add From Local Input
         </label>
+      </div>
+      <span>or</span>
+      <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="HEPdata ID" aria-label="HEPdata ID" aria-describedby="button-addon2">
+        <div class="addbutton">
+          <button class="btn btn-outline-primary btn-lg" type="button" id="button-addon2">Add From HEPdata</button>
+        </div>
       </div>
     </div>
   </div>
