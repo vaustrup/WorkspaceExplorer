@@ -7,7 +7,7 @@ export default {
   data () {
     return {
       workspaces: [],
-      hepdataid: '2077557'
+      hepdataid: ''
     }
   },
   methods: {
@@ -32,6 +32,7 @@ export default {
       reader.readAsText(file)
     },
     readFileFromHEPData: async function () {
+      if (this.hepdataid === '') { return }
       const hepdataurl = 'https://www.hepdata.net/record/ins' + this.hepdataid + '?format=json'
       const hepdataentry = await (await fetch(hepdataurl)).json()
       console.log(hepdataentry)
@@ -48,9 +49,6 @@ export default {
     deleteWorkspace: function (index) {
       this.workspaces.splice(index, 1)
     }
-  },
-  beforeMount () {
-    this.readFileFromHEPData()
   }
 }
 </script>
@@ -73,9 +71,9 @@ export default {
       </div>
       <span>or</span>
       <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="HEPdata ID" aria-label="HEPdata ID" aria-describedby="button-addon2">
+        <input type="text" class="form-control" v-model="hepdataid" placeholder="HEPdata ID" aria-label="HEPdata ID" aria-describedby="button-addon2">
         <div class="addbutton">
-          <button class="btn btn-outline-primary btn-lg" type="button" id="button-addon2">Add From HEPdata</button>
+          <button class="btn btn-outline-primary btn-lg" type="button" id="button-addon2" @click="readFileFromHEPData">Add From HEPdata</button>
         </div>
       </div>
     </div>
