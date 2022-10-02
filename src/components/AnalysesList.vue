@@ -6,7 +6,11 @@ export default {
   },
   data () {
     return {
-      workspaces: []
+      workspaces: [],
+      hepdataid: '',
+      inputtext: 'HEPData ID',
+      invalidhepdataentry: false,
+      noworkspaces: false
     }
   },
   methods: {
@@ -30,6 +34,36 @@ export default {
       }
       reader.readAsText(file)
     },
+    readFileFromHEPData: async function () {
+      this.invalidhepdataentry = false
+      this.noworkspaces = false
+      this.hepdataid = this.inputtext
+      if (this.hepdataid === '') { return }
+      const hepdataurl = 'https://www.hepdata.net/record/ins' + this.hepdataid + '?format=json'
+      let hepdataentry = {}
+      try {
+        hepdataentry = await (await fetch(hepdataurl)).json()
+      } catch {
+        this.invalidhepdataentry = true
+        console.log('Invalid JSON encountered. Are you sure you provided the correct HEPData ID?')
+        return
+      }
+      const analyses = hepdataentry.record.analyses.filter(analysis => analysis.type === 'HistFactory')
+      if (analyses.length === 0) {
+        this.noworkspaces = true
+        console.log('No JSON workspaces are available for this HEPData entry.')
+        return
+      }
+      this.inputtext = 'HEPData ID'
+      let hepdataIndex = 1
+      for (const analysis of analyses) {
+        const response = await (await fetch(analysis.analysis.replace('landing_page=true', 'format=json'))).json()
+        const workspace = JSON.parse(response.file_contents)
+        console.log(workspace)
+        this.workspaces.push({ name: 'HEPdata ID: ' + this.hepdataid + ', workspace: ' + hepdataIndex, workspace })
+        hepdataIndex++
+      }
+    },
     deleteWorkspace: function (index) {
       this.workspaces.splice(index, 1)
     }
@@ -50,8 +84,23 @@ export default {
       <div class="addbutton">
         <label class="btn btn-outline-primary btn-lg">
             <input type="file" @change="loadFiles" multiple/>
-            Add New Workspaces
+            Add From Local Input
         </label>
+      </div>
+      <span>or</span>
+      <div class="input-group mb-3">
+        <input type="text" class="form-control form-control-sm" v-model="inputtext" :placeholder="inputtext" aria-label="HEPdata ID" aria-describedby="button-addon2">
+        <div class="addbutton">
+          <button class="btn btn-outline-primary btn-lg" type="button" id="button-addon2" @click="readFileFromHEPData">Add From HEPdata</button>
+        </div>
+      </div>
+      <div class="errormessage">
+        <div v-if="invalidhepdataentry">
+          Invalid JSON encountered. Are you sure you provided the correct HEPData ID?
+        </div>
+        <div v-if="noworkspaces">
+          No JSON workspaces are available for this HEPData entry.
+        </div>
       </div>
     </div>
   </div>
@@ -77,6 +126,10 @@ export default {
     border: 0;
   }
 
+  .errormessage {
+    color: red;
+  }
+
   .overview {
     text-align: center;
   }
@@ -88,9 +141,4 @@ export default {
   .addbutton {
     padding:1em;
   }
-  /* When the visually hidden child input has focus, style the parent.
-  label:focus-within {
-      outline: 5px solid;
-  } */
-
 </style>
