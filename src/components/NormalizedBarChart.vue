@@ -1,5 +1,5 @@
 <script>
-import * as d3 from 'd3'
+import * as plotting from '../utils/plotting'
 export default {
   props: {
     inputData: Object,
@@ -25,7 +25,7 @@ export default {
       return channelNameList
     },
     color () {
-      return d3.scaleOrdinal(d3.schemeSet1).domain(this.processNames)
+      return plotting.colorSchemeOrdinal(this.processNames)
     },
     normalizeInputData () {
       const normalizedInputData = this.inputData
@@ -38,20 +38,14 @@ export default {
       return normalizedInputData
     },
     stackedData () {
-      const stackedData = d3.stack()
-        .keys(this.processNames)(this.normalizeInputData)
+      const stackedData = plotting.stackedArray({ keys: this.processNames, data: this.normalizeInputData })
       return stackedData
     },
     xScale () {
-      return d3.scaleLinear()
-        .domain([0, 100])
-        .range([0, 500])
+      return plotting.scaleLinear({ domain: [0, 100], range: [0, 500] })
     },
     yScale () {
-      return d3.scaleBand()
-        .domain(this.channelNames)
-        .range([0, this.channelNames.length * this.barHeight])
-        .padding(0.05)
+      return plotting.scaleBand({ domain: this.channelNames, range: [0, this.channelNames.length * this.barHeight], padding: 0.05 })
     },
     pathStringX () {
       const ypos = this.yScale(this.channelNames[this.channelNames.length - 1]) + this.barHeight

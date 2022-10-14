@@ -18,8 +18,7 @@
 </template>
 
 <script>
-//
-import * as d3 from 'd3'
+import * as plotting from '../utils/plotting'
 export default {
   props: {
     workspace: Object,
@@ -34,7 +33,7 @@ export default {
   },
   computed: {
     color () {
-      return d3.scaleOrdinal(d3.schemeSet1).domain(this.processNames)
+      return plotting.colorSchemeOrdinal(this.processNames)
     },
     stackedData () {
       const length = this.workspace.samples[0].data.length
@@ -52,8 +51,7 @@ export default {
           }
         }
       }
-      const data = d3.stack()
-        .keys(this.processNames)(stackedArray)
+      const data = plotting.stackedArray({ keys: this.processNames, data: stackedArray })
       return data
     },
     uncertainty_up () {
@@ -75,8 +73,8 @@ export default {
     maximumYields () {
       const data = this.stackedData
       const observed = this.observations.data
-      const maximumData = d3.max(data[data.length - 1], d => d[1])
-      const maximumObserved = d3.max(observed, d => d + d ** 0.5)
+      const maximumData = Math.max(...data[data.length - 1].map(d => d[1]))
+      const maximumObserved = Math.max(...observed.map(d => d + d ** 0.5))
       return Math.max(maximumData, maximumObserved)
     },
     bins () {
@@ -85,16 +83,10 @@ export default {
       return domain
     },
     xScale () {
-      return d3.scaleBand()
-        .domain(this.bins)
-        .range([0, 200])
-        .padding(0)
+      return plotting.scaleBand({ domain: this.bins, range: [0, 200], padding: 0 })
     },
     yScale () {
-      const scale = d3.scaleLinear()
-        .domain([0, 1.2 * this.maximumYields])
-        .range([-200, 0])
-      return scale
+      return plotting.scaleLinear({ domain: [0, 1.2 * this.maximumYields], range: [-200, 0] })
     },
     pathStringX () {
       let string = 'M' + 0 + ',' + 0

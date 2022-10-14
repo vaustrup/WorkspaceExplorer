@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import * as d3 from 'd3'
+import * as plotting from '../utils/plotting'
 export default {
   props: {
     processNames: Array,
@@ -16,7 +16,7 @@ export default {
   },
   data () {
     return {
-      color: d3.scaleOrdinal(d3.schemeSet1).domain(this.processNames),
+      color: plotting.colorSchemeOrdinal(this.processNames),
       radius: 100
     }
   },
