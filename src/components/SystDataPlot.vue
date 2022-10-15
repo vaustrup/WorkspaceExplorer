@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import * as d3 from 'd3'
+import * as plotting from '../utils/plotting'
 export default {
   props: {
     workspace: Object,
@@ -72,7 +72,7 @@ export default {
     maximumYields () {
       const maxyields = Math.max(...this.totalYields)
       const observed = this.observations.data
-      const maximumObserved = d3.max(observed, d => d + d ** 0.5)
+      const maximumObserved = Math.max(...observed.map(d => d + d ** 0.5))
       return Math.max(maxyields, maximumObserved)
     },
     bins () {
@@ -81,16 +81,10 @@ export default {
       return domain
     },
     xScale () {
-      return d3.scaleBand()
-        .domain(this.bins)
-        .range([0, 200])
-        .padding(0)
+      return plotting.scaleBand({ domain: this.bins, range: [0, 200], padding: 0 })
     },
     yScale () {
-      const scale = d3.scaleLinear()
-        .domain([0, 1.2 * this.maximumYields])
-        .range([-200, 0])
-      return scale
+      return plotting.scaleLinear({ domain: [0, 1.2 * this.maximumYields], range: [-200, 0] })
     },
     pathStringX () {
       let string = 'M' + 0 + ',' + 0
