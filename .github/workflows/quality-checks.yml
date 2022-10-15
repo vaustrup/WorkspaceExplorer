@@ -10,3 +10,4 @@ jobs:
           node-version: '16'
       - run: npm install
       - run: npx eslint --ext .vue src/components/
+      - run: npx eslint --ext .vue src/
