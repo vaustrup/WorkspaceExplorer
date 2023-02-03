@@ -1,125 +1,238 @@
-<script>
-import * as plotting from '../utils/plotting'
-export default {
-  props: {
-    inputData: Object,
-    processNames: Array
-  },
-  data () {
-    return {
-      barHeight: 40,
-      ticks: 6,
-      ticklength: 5,
-      xlabeloffset: 15,
-      xtitleoffset: 40,
-      highlightedProcess: '',
-      processTitles: this.processNames
-    }
-  },
-  computed: {
-    channelNames () {
-      const channelNameList = []
-      for (const c of this.inputData) {
-        channelNameList.push(c.name)
-      }
-      return channelNameList
-    },
-    color () {
-      return plotting.colorSchemeOrdinal(this.processNames)
-    },
-    normalizeInputData () {
-      const normalizedInputData = this.inputData
-      const processNames = this.processNames
-      normalizedInputData.forEach(function (d) {
-        let tot = 0
-        for (const p of processNames) { tot += d[p] }
-        for (const p of processNames) { d[p] = d[p] / tot * 100 }
-      })
-      return normalizedInputData
-    },
-    stackedData () {
-      const stackedData = plotting.stackedArray({ keys: this.processNames, data: this.normalizeInputData })
-      return stackedData
-    },
-    xScale () {
-      return plotting.scaleLinear({ domain: [0, 100], range: [0, 500] })
-    },
-    yScale () {
-      return plotting.scaleBand({ domain: this.channelNames, range: [0, this.channelNames.length * this.barHeight], padding: 0.05 })
-    },
-    pathStringX () {
-      const ypos = this.yScale(this.channelNames[this.channelNames.length - 1]) + this.barHeight
-      const ticklength = this.ticklength
-      const ticks = this.ticks
-      let string = 'M' + this.xScale(0) + ',' + (ypos + ticklength)
-      string += 'V' + ypos
-      for (let i = 1; i < ticks; i++) {
-        string += 'H' + this.xScale(i * 20)
-        string += 'V' + (ypos + ticklength)
-        string += 'M' + this.xScale(i * 20) + ',' + ypos
-      }
-      return string
-    },
-    pathStringY () {
-      const ticklength = this.ticklength
-      let string = 'M' + this.xScale(0) + ',' + (this.yScale(this.channelNames[this.channelNames.length - 1]) + this.barHeight)
-      for (let i = 0; i < this.channelNames.length; i++) {
-        string += 'V' + (this.yScale(this.channelNames[this.channelNames.length - 1]) - (2 * i - 1) * 20)
-        string += 'H' + (this.xScale(0) - ticklength)
-        string += 'M' + this.xScale(0) + ',' + (this.yScale(this.channelNames[this.channelNames.length - 1]) - (2 * i - 1) * 20)
-        string += 'V' + (this.yScale(this.channelNames[this.channelNames.length - 1]) - 2 * i * 20)
-      }
-      return string
-    },
-    processisHighlighted () {
-      return (index) => {
-        return (this.highlightedProcess === '' || this.highlightedProcess === this.processNames[index])
-      }
-    },
-    processTitle () {
-      return (index) => {
-        return this.processTitles[index]
-      }
-    }
-  },
-  methods: {
-    highlight (index) {
-      this.highlightedProcess = this.processNames[index]
-    },
-    unhighlight () {
-      this.highlightedProcess = ''
-    }
-  }
+<script setup lang="ts">
+import { reactive, computed } from 'vue';
+import { useWorkspaceStore } from '../stores/workspace';
+import DownloadHelper from './DownloadHelper.vue';
+
+const props = defineProps<{
+  id: number;
+}>();
+
+const workspace_store = useWorkspaceStore(props.id)();
+
+// method to scale width and position in x to a given range
+function horizontal_scale(
+  input_min: number,
+  input_max: number,
+  target_min: number,
+  target_max: number
+): number {
+  return (target_max - target_min) / (input_max - input_min) + target_min;
 }
+
+// define plot style
+const tick_length = 5;
+const bar_height = 35;
+const padding = 5;
+const number_of_ticks = 6;
+const x_range = 500;
+const x_label_offset = 15;
+const y_label_offset = 10;
+const x_title_offset = 30;
+
+// create strings for path of axes
+function yaxis_path(): string {
+  let path =
+    'M0,0V' +
+    ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
+      padding);
+  for (let i = 1; i <= workspace_store.normalized_stacked_data.length; i++) {
+    path += 'M0,' + ((i - 0.5) * bar_height + i * padding);
+    path += 'H-' + tick_length;
+  }
+
+  return path;
+}
+
+function xaxis_path(): string {
+  let path =
+    'M0,' +
+    ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
+      padding) +
+    'H' +
+    x_range;
+  for (let i = 0; i < number_of_ticks; i++) {
+    path +=
+      'M' +
+      i * (x_range / (number_of_ticks - 1)) +
+      ',' +
+      ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
+        padding);
+    path +=
+      'V' +
+      ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
+        padding +
+        tick_length);
+  }
+  return path;
+}
+
+// highlight processes on mouseove
+const state = reactive({ highlighted_process_index: -999 });
+
+function highlight(index: number): void {
+  state.highlighted_process_index = index;
+}
+
+function unhighlight(): void {
+  state.highlighted_process_index = -999;
+}
+
+// the height of the plot should be at least the height of the bars corresponding to the different channels
+// but it also has to be large enough to contain all legend entries
+const height = computed(() => {
+  return Math.max(
+    workspace_store.channel_names.length * 50 + 50,
+    workspace_store.normalized_stacked_data[0].processes.length * 25
+  );
+});
 </script>
 
 <template>
-  <svg :width="1000" :height="channelNames.length*50+50">
-    <g transform="translate(250, 10)">
-      <template v-for="(process, processindex) in stackedData">
-        <rect v-for="(channel, channelindex) in process" :key="channelNames[channelindex]" :height="yScale.bandwidth()" :x="xScale(channel[0])" :y="yScale(channelNames[channelindex])" :width="xScale(channel[1])-xScale(channel[0])" :fill="color(processNames[processindex])" :class="{ isnothighlighted: !processisHighlighted(processindex) }" @mouseover="highlight(processindex)" @mouseleave="unhighlight"/>
-      </template>
-      <path fill="none" stroke="#000"
-            :d="pathStringX"></path>
-      <text v-for="tick in parseInt(ticks)" :key="tick" :y="yScale(channelNames[channelNames.length-1])+barHeight+xlabeloffset" :x="xScale((tick-1)*20)" dominant-baseline="middle" text-anchor="middle">{{(tick-1)*20}}</text>
-      <text :y="yScale(channelNames[channelNames.length-1])+barHeight+xtitleoffset" :x="xScale(50)" dominant-baseline="middle" text-anchor="middle">Relative Contributions in %</text>
-      <path fill="none" stroke="#000"
-            :d="pathStringY"></path>
-      <text v-for="channel in channelNames" :key="channel" :x="-10" :y="yScale(channel)+barHeight/2" dominant-baseline="middle" text-anchor="end">{{channel}}</text>
-      <template v-for="(process, processindex) in stackedData" :key="processNames[processindex]">
-        <rect height="20" width="20" :fill="color(processNames[processindex])" x="550" :y="25*processindex" :id="processNames[processindex]" :class="{ isnothighlighted: !processisHighlighted(processindex) }" @mouseover="highlight(processindex)" @mouseleave="unhighlight"/>
-        <text x="580" :y="15+25*processindex" :id="processNames[processindex]" :class="{ isnothighlighted: !processisHighlighted(processindex) }" @mouseover="highlight(processindex)" @mouseleave="unhighlight">{{processNames[processindex]}}</text>
-      </template>
-    </g>
-  </svg>
+  <div>
+    <DownloadHelper :id="'normalizedbarchart' + workspace_store.name" />
+    <svg
+      width="1000"
+      :height="height"
+      :id="'svg_normalizedbarchart' + workspace_store.name"
+    >
+      <g transform="translate(250, 10)">
+        <template
+          v-for="(
+            channel, channel_index
+          ) in workspace_store.normalized_stacked_data"
+          :key="'channel' + channel_index.toString"
+        >
+          <rect
+            v-for="(process, process_index) in channel.processes"
+            :key="'process' + process_index.toString()"
+            :height="bar_height"
+            :width="
+              horizontal_scale(
+                channel.processes[0].low,
+                channel.processes[channel.processes.length - 1].high,
+                0,
+                x_range
+              ) *
+              (process.high - process.low)
+            "
+            :x="
+              horizontal_scale(
+                channel.processes[0].low,
+                channel.processes[channel.processes.length - 1].high,
+                0,
+                x_range
+              ) * process.low
+            "
+            :y="(bar_height + padding) * channel_index + padding"
+            :fill="workspace_store.colors[process.name]"
+            :class="{
+              isnothighlighted: !(
+                state.highlighted_process_index === -999 ||
+                process_index === state.highlighted_process_index
+              ),
+            }"
+            @mouseover="highlight(process_index)"
+            @mouseleave="unhighlight"
+          />
+        </template>
+        <path fill="none" stroke="#000" :d="yaxis_path()"></path>
+        <text
+          v-for="(
+            channel, channel_index
+          ) in workspace_store.normalized_stacked_data"
+          :key="channel.name"
+          :x="-y_label_offset"
+          :y="
+            (channel_index + 1) * padding + (channel_index + 0.5) * bar_height
+          "
+          dominant-baseline="middle"
+          text-anchor="end"
+        >
+          {{ workspace_store.channel_titles[channel.name] }}
+          <title>
+            {{ workspace_store.channel_titles[channel.name] }}
+          </title>
+        </text>
+        <path fill="none" stroke="#000" :d="xaxis_path()"></path>
+        <text
+          v-for="tick in number_of_ticks"
+          :key="tick"
+          :y="
+            (bar_height + padding) *
+              workspace_store.normalized_stacked_data.length +
+            padding +
+            x_label_offset
+          "
+          :x="(tick - 1) * 20 * horizontal_scale(0, 100, 0, x_range)"
+          dominant-baseline="middle"
+          text-anchor="middle"
+        >
+          {{ (tick - 1) * 20 }}
+        </text>
+        <text
+          :y="
+            (bar_height + padding) *
+              workspace_store.normalized_stacked_data.length +
+            padding +
+            x_title_offset
+          "
+          :x="50 * horizontal_scale(0, 100, 0, x_range)"
+          dominant-baseline="middle"
+          text-anchor="middle"
+        >
+          Relative Contributions in %
+        </text>
+        <template
+          v-for="(process, process_index) in workspace_store
+            .normalized_stacked_data[0].processes"
+          :key="process.name"
+        >
+          <rect
+            height="20"
+            width="20"
+            :fill="workspace_store.colors[process.name]"
+            :x="x_range + 50"
+            :y="25 * process_index"
+            :id="process.name"
+            :class="{
+              isnothighlighted: !(
+                state.highlighted_process_index === -999 ||
+                process_index === state.highlighted_process_index
+              ),
+            }"
+            @mouseover="highlight(process_index)"
+            @mouseleave="unhighlight"
+          />
+          <text
+            :x="x_range + 80"
+            :y="15 + 25 * process_index"
+            :id="process.name"
+            :class="{
+              isnothighlighted: !(
+                state.highlighted_process_index === -999 ||
+                process_index === state.highlighted_process_index
+              ),
+            }"
+            @mouseover="highlight(process_index)"
+            @mouseleave="unhighlight"
+          >
+            {{ workspace_store.process_titles[process.name] }}
+            <title>
+              {{ workspace_store.process_titles[process.name] }}
+            </title>
+          </text>
+        </template>
+      </g>
+    </svg>
+  </div>
 </template>
 
-<style>
-rect.isnothighlighted{
-  fill-opacity:0.5;
+<style scoped>
+rect.isnothighlighted {
+  fill-opacity: 0.5;
   transition: fill-opacity 0.5s ease;
 }
-text.isnothighlighted{
+text.isnothighlighted {
   fill: grey;
   transition: fill 0.5s ease;
 }
