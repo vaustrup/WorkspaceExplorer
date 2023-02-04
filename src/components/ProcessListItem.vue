@@ -61,7 +61,11 @@ function edit_process_color(): void {
       <q-btn @click="edit_process_title()" icon="edit" />
     </q-item-section>
     <q-item-section side top>
-      <q-btn @click="edit_process_color()" icon="color_lens">
+      <q-btn
+        @click="edit_process_color()"
+        icon="o_color_lens"
+        :style="'color: white; background-color: ' + color"
+      >
         <q-popup-proxy>
           <q-color
             v-model="color"
