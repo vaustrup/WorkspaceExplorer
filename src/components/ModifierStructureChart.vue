@@ -317,7 +317,15 @@ const width = computed(() => {
                     dominant-baseline="middle"
                     text-anchor="end"
                   >
-                    {{ sample.name }}
+                    {{
+                      workspace_store.process_titles[sample.name].substring(
+                        0,
+                        18
+                      ) +
+                      (workspace_store.process_titles[sample.name].length > 18
+                        ? '...'
+                        : '')
+                    }}
                   </text>
                 </template>
               </template>
@@ -365,7 +373,18 @@ const width = computed(() => {
                         state.highlight_mode,
                     }"
                   >
-                    {{ workspace_store.process_titles[sample.name] }}
+                    {{
+                      workspace_store.process_titles[sample.name].substring(
+                        0,
+                        18
+                      ) +
+                      (workspace_store.process_titles[sample.name].length > 18
+                        ? '...'
+                        : '')
+                    }}
+                    <title>
+                      {{ workspace_store.process_titles[sample.name] }}
+                    </title>
                   </text>
                 </template>
               </template>

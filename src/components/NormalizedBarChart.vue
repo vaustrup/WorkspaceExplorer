@@ -148,7 +148,12 @@ const height = computed(() => {
           dominant-baseline="middle"
           text-anchor="end"
         >
-          {{ workspace_store.channel_titles[channel.name] }}
+          {{
+            workspace_store.channel_titles[channel.name].substring(0, 25) +
+            (workspace_store.channel_titles[channel.name].length > 25
+              ? '...'
+              : '')
+          }}
           <title>
             {{ workspace_store.channel_titles[channel.name] }}
           </title>
@@ -216,7 +221,12 @@ const height = computed(() => {
             @mouseover="highlight(process_index)"
             @mouseleave="unhighlight"
           >
-            {{ workspace_store.process_titles[process.name] }}
+            {{
+              workspace_store.process_titles[process.name].substring(0, 18) +
+              (workspace_store.process_titles[process.name].length > 18
+                ? '...'
+                : '')
+            }}
             <title>
               {{ workspace_store.process_titles[process.name] }}
             </title>

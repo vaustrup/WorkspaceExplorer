@@ -165,7 +165,12 @@ const height = computed(() => {
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"
         >
-          {{ workspace_store.process_titles[process.name] }}
+          {{
+            workspace_store.process_titles[process.name].substring(0, 10) +
+            (workspace_store.process_titles[process.name].length > 10
+              ? '...'
+              : '')
+          }}
           <title>
             {{ workspace_store.process_titles[process.name] }}
           </title>
