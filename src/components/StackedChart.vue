@@ -142,10 +142,10 @@ function unhighlight(): void {
 
 <template>
   <div class="stackedchart">
-    <span
+    <h3
       :style="
         'width: ' +
-        (300 + bin_width * number_of_bins) +
+        (200 + bin_width * number_of_bins) +
         'px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
       "
       :title="
@@ -159,7 +159,7 @@ function unhighlight(): void {
           workspace_store.channel_names[channel_index]
         ]
       }}
-    </span>
+    </h3>
     <svg
       height="400"
       :width="bin_width * number_of_bins + 300"
@@ -381,5 +381,9 @@ path.isnothighlighted {
 text.isnothighlighted {
   fill: grey;
   transition: fill 0.5s ease;
+}
+
+h3 {
+  font-size: 1.2em;
 }
 </style>

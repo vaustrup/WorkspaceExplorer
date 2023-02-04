@@ -89,7 +89,7 @@ const height = computed(() => {
 
 <template>
   <div class="piechart">
-    <span
+    <h3
       :style="
         'width: ' +
         3 * radius +
@@ -106,7 +106,7 @@ const height = computed(() => {
           workspace_store.channel_names[channel_index]
         ]
       }}
-    </span>
+    </h3>
     <svg
       :width="4 * radius"
       :height="height"
@@ -196,5 +196,9 @@ path.isnothighlighted {
 text.isnothighlighted {
   fill: grey;
   transition: fill 0.5s ease;
+}
+
+h3 {
+  font-size: 1.2em;
 }
 </style>

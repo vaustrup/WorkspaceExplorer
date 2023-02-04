@@ -23,7 +23,7 @@ const height = computed(() => {
     Math.max(
       2 * 100,
       25 * workspace_store.normalized_stacked_data[0].processes.length
-    ) + 100
+    ) + 150
   );
 });
 </script>
@@ -101,7 +101,7 @@ const height = computed(() => {
           />
         </HorizontalScrollArea>
         <q-separator inset></q-separator>
-        <HorizontalScrollArea height="500">
+        <HorizontalScrollArea height="550">
           <StackedChart
             v-for="(
               channel, channel_index

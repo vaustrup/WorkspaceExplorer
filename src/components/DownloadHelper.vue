@@ -19,7 +19,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-btn :href="svg2img" :download="id + '.svg'" target="_blank">
+  <q-btn
+    :href="svg2img"
+    :download="id + '.svg'"
+    target="_blank"
+    style="margin-left: 10px"
+  >
     Download
   </q-btn>
 </template>
