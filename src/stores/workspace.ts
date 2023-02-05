@@ -10,6 +10,7 @@ import type {
   IWorkspace,
 } from '../interfaces';
 import { color_scheme } from '../utils/colors';
+import { Notify } from 'quasar';
 
 export const useWorkspaceStore = function (id: number) {
   return defineStore('workspace' + id, {
@@ -309,10 +310,16 @@ export const useWorkspaceStore = function (id: number) {
           try {
             const workspace: IWorkspace = JSON.parse(reader.result.toString());
             this.workspace = workspace;
-            console.log(workspace);
             this.name = file.name;
           } catch (e) {
             console.log(e);
+            Notify.create({
+              message:
+                'Error when parsing workspace. Is this an actual JSON file?',
+              color: 'negative',
+              icon: 'report_problem',
+              position: 'top',
+            });
             return;
           }
         };

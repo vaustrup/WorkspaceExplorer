@@ -19,7 +19,9 @@ export const useStoreIDStore = defineStore('storeids', {
     async load_workspaces_from_HEPdata(hepdata_id: string): Promise<void> {
       console.log(hepdata_id);
       const hepdata_url =
-        'https://www.hepdata.net/record/ins' + hepdata_id + '?format=json';
+        'https://www.hepdata.net/record/ins' +
+        hepdata_id +
+        '?format=json&light=true';
       let hepdata_entry: IHEPdataentry | null = null;
       try {
         hepdata_entry = await (await fetch(hepdata_url)).json();

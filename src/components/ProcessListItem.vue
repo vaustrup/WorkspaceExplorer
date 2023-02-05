@@ -30,7 +30,6 @@ function enable_popup(): void {
 const color = ref(workspace_store.colors[props.process_name]);
 
 function edit_process_color(): void {
-  console.log(color.value);
   workspace_store.process_color_index[props.process_name] = color.value;
 }
 </script>

@@ -101,7 +101,6 @@ const y_pos = computed(() => {
       );
     }
     positions.push(position_per_sample);
-    console.log(channel_offset);
     channel_offset += channel.samples.length * size;
     channel_index++;
   }
