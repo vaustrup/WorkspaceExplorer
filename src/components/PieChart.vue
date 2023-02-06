@@ -178,11 +178,12 @@ const height = computed(() => {
       </template>
     </svg>
     <DownloadHelper
-      :id="
+      :svg_id="
         'piechart' +
         workspace_store.name +
         workspace_store.channel_names[channel_index]
       "
+      :id="id"
     />
   </div>
 </template>

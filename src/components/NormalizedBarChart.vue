@@ -29,12 +29,13 @@ const x_label_offset = 15;
 const y_label_offset = 10;
 const x_title_offset = 30;
 
+const offset =
+  (bar_height + padding) * workspace_store.normalized_stacked_data.length +
+  padding;
+
 // create strings for path of axes
 function yaxis_path(): string {
-  let path =
-    'M0,0V' +
-    ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
-      padding);
+  let path = 'M0,0V' + offset;
   for (let i = 1; i <= workspace_store.normalized_stacked_data.length; i++) {
     path += 'M0,' + ((i - 0.5) * bar_height + i * padding);
     path += 'H-' + tick_length;
@@ -44,29 +45,15 @@ function yaxis_path(): string {
 }
 
 function xaxis_path(): string {
-  let path =
-    'M0,' +
-    ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
-      padding) +
-    'H' +
-    x_range;
+  let path = 'M0,' + offset + 'H' + x_range;
   for (let i = 0; i < number_of_ticks; i++) {
-    path +=
-      'M' +
-      i * (x_range / (number_of_ticks - 1)) +
-      ',' +
-      ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
-        padding);
-    path +=
-      'V' +
-      ((bar_height + padding) * workspace_store.normalized_stacked_data.length +
-        padding +
-        tick_length);
+    path += 'M' + i * (x_range / (number_of_ticks - 1)) + ',' + offset;
+    path += 'V' + (offset + tick_length);
   }
   return path;
 }
 
-// highlight processes on mouseove
+// highlight processes on mouseover
 const state = reactive({ highlighted_process_index: -999 });
 
 function highlight(index: number): void {
@@ -89,7 +76,10 @@ const height = computed(() => {
 
 <template>
   <div>
-    <DownloadHelper :id="'normalizedbarchart' + workspace_store.name" />
+    <DownloadHelper
+      :svg_id="'normalizedbarchart' + workspace_store.name"
+      :id="id"
+    />
     <svg
       width="1000"
       :height="height"

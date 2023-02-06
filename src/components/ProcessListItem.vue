@@ -32,6 +32,10 @@ const color = ref(workspace_store.colors[props.process_name]);
 function edit_process_color(): void {
   workspace_store.process_color_index[props.process_name] = color.value;
 }
+
+async function update_download_buttons(): Promise<void> {
+  workspace_store.update_all_svg_urls();
+}
 </script>
 
 <template>
@@ -45,7 +49,10 @@ function edit_process_color(): void {
           v-model="workspace_store.process_title_index[process_name]"
           auto-save
           v-slot="scope"
-          @hide="disable_popup"
+          @hide="
+            disable_popup();
+            update_download_buttons();
+          "
         >
           <q-input
             v-model="scope.value"
@@ -65,7 +72,7 @@ function edit_process_color(): void {
         icon="o_color_lens"
         :style="'color: white; background-color: ' + color"
       >
-        <q-popup-proxy>
+        <q-popup-proxy @before-hide="update_download_buttons()">
           <q-color
             v-model="color"
             @update:model-value="edit_process_color()"

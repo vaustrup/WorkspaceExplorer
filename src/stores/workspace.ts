@@ -20,6 +20,7 @@ export const useWorkspaceStore = function (id: number) {
       process_title_index: {} as { [key: string]: string },
       channel_title_index: {} as { [key: string]: string },
       process_color_index: {} as { [key: string]: string },
+      download_urls: {} as { [key: string]: string },
     }),
     getters: {
       process_names(): string[] {
@@ -347,6 +348,22 @@ export const useWorkspaceStore = function (id: number) {
         storeid.remove_store_with_id(id);
         this.workspace = {} as IWorkspace;
         this.name = '';
+      },
+      set_svg_url(svg_id: string): void {
+        const svg = document.getElementById('svg_' + svg_id);
+        if (svg === null) {
+          this.download_urls[svg_id] = '';
+          return;
+        }
+        const xml = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([xml], { type: 'image/svg+xml' });
+        const url = window.URL.createObjectURL(blob);
+        this.download_urls[svg_id] = url;
+      },
+      update_all_svg_urls(): void {
+        for (const svg_id in this.download_urls) {
+          this.set_svg_url(svg_id);
+        }
       },
     },
   });

@@ -84,7 +84,6 @@ const x_pos = computed(() => {
 
 const y_pos = computed(() => {
   const positions: number[][] = [];
-  let channel_index = 0;
   let channel_offset = 0;
   for (const channel of workspace_store.workspace.channels) {
     const position_per_sample = [];
@@ -94,21 +93,16 @@ const y_pos = computed(() => {
       sample_index++
     ) {
       position_per_sample.push(
-        sample_index * size +
-          channel_index * padding +
-          channel_offset +
-          legend_height.value
+        sample_index * size + channel_offset + legend_height.value
       );
     }
     positions.push(position_per_sample);
-    channel_offset += channel.samples.length * size;
-    channel_index++;
+    channel_offset += channel.samples.length * size + padding;
   }
   return positions;
 });
 
 // make interactive
-
 const state = reactive({
   highlight_mode: false,
   channel_index: -999,
@@ -175,12 +169,12 @@ const width = computed(() => {
                   :fill="colors[modifier_type_name]"
                   :height="size"
                   :width="size"
-                  :x="modifier_type_index * 175 + ylabel_length + label_offset"
+                  :x="modifier_type_index * 200 + ylabel_length + label_offset"
                   y="0"
                 />
                 <text
                   :x="
-                    modifier_type_index * 175 +
+                    modifier_type_index * 200 +
                     size +
                     ylabel_length +
                     2 * label_offset
@@ -207,7 +201,7 @@ const width = computed(() => {
                   :fill="colors[modifier_type_name]"
                   :height="size"
                   :width="size"
-                  :x="modifier_type_index * 175 + ylabel_length + label_offset"
+                  :x="modifier_type_index * 200 + ylabel_length + label_offset"
                   y="0"
                   :class="{
                     isnothighlighted:
@@ -225,7 +219,7 @@ const width = computed(() => {
                 <text
                   v-if="state.channel_index !== -999"
                   :x="
-                    modifier_type_index * 175 +
+                    modifier_type_index * 200 +
                     size +
                     ylabel_length +
                     2 * label_offset
@@ -515,7 +509,10 @@ const width = computed(() => {
         </svg>
       </div>
     </q-scroll-area>
-    <DownloadHelper :id="'modifierstructure' + workspace_store.name" />
+    <DownloadHelper
+      :svg_id="'modifierstructure' + workspace_store.name"
+      :id="id"
+    />
   </div>
 </template>
 

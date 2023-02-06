@@ -1,27 +1,24 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
+import { useWorkspaceStore } from 'src/stores/workspace';
 const props = defineProps<{
-  id: string;
+  svg_id: string;
+  id: number;
 }>();
 
-const svg2img = ref('');
+const workspace_store = useWorkspaceStore(props.id)();
 
+// we should set the url only once the component is created,
+// as otherwise the button will be created first and the plot will be empty
 onMounted(() => {
-  const svg = document.getElementById('svg_' + props.id);
-  if (svg === null) {
-    return '';
-  }
-  const xml = new XMLSerializer().serializeToString(svg);
-  const blob = new Blob([xml], { type: 'image/svg+xml' });
-  const url = window.URL.createObjectURL(blob);
-  svg2img.value = url;
+  workspace_store.set_svg_url(props.svg_id);
 });
 </script>
 
 <template>
   <q-btn
-    :href="svg2img"
-    :download="id + '.svg'"
+    :href="workspace_store.download_urls[props.svg_id]"
+    :download="svg_id + '.svg'"
     target="_blank"
     style="margin-left: 10px"
   >

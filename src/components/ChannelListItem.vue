@@ -14,6 +14,9 @@ const popup = ref<InstanceType<typeof QPopupEdit>>();
 
 const state = reactive({ popup_disabled: true });
 
+// when clicking the edit button, the popup element is enabled
+// we then wait for the next tick for the information to propagate
+// afterwards we can actually show the popup
 async function edit_process_title(): Promise<void> {
   enable_popup();
   await nextTick();
@@ -24,6 +27,10 @@ function disable_popup(): void {
 }
 function enable_popup(): void {
   state.popup_disabled = false;
+}
+
+async function update_download_buttons(): Promise<void> {
+  workspace_store.update_all_svg_urls();
 }
 </script>
 
@@ -38,7 +45,10 @@ function enable_popup(): void {
           v-model="workspace_store.channel_title_index[channel_name]"
           auto-save
           v-slot="scope"
-          @hide="disable_popup"
+          @hide="
+            disable_popup();
+            update_download_buttons();
+          "
         >
           <q-input
             v-model="scope.value"
