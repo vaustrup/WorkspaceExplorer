@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr lff">
     <q-header>
       <q-toolbar class="bg-blue-grey-8">
         <q-toolbar-title> WorkspaceExplorer </q-toolbar-title>
@@ -16,7 +16,23 @@
     <q-page-container class="bg-blue-grey-1">
       <router-view />
     </q-page-container>
+
+    <q-footer class="bg-blue-grey-4">
+      <div style="margin: 10px">
+        If you have suggestions for improvements to this site or encounter
+        problems, please open an issue in our
+        <a href="https://github.com/vaustrup/WorkspaceExplorer"
+          >Github repository</a
+        >.
+      </div>
+    </q-footer>
   </q-layout>
 </template>
 
 <script setup lang="ts"></script>
+
+<style scoped>
+a {
+  color: white;
+}
+</style>
