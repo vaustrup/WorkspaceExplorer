@@ -21,6 +21,7 @@ export const useWorkspaceStore = function (id: number) {
       channel_title_index: {} as { [key: string]: string },
       process_color_index: {} as { [key: string]: string },
       download_urls: {} as { [key: string]: string },
+      loading: true as boolean,
     }),
     getters: {
       process_names(): string[] {
@@ -325,6 +326,7 @@ export const useWorkspaceStore = function (id: number) {
           }
         };
         reader.readAsText(file);
+        this.loading = false;
       },
       async load_workspace_from_HEPdata(
         analysis: IHEPdataanalysis,
@@ -342,12 +344,14 @@ export const useWorkspaceStore = function (id: number) {
         const workspace = JSON.parse(response.file_contents);
         this.workspace = workspace;
         this.name = 'HEPdataID' + hepdata_id + 'WS' + ws_index;
+        this.loading = false;
       },
       delete_workspace(): void {
         const storeid = useStoreIDStore();
         storeid.remove_store_with_id(id);
         this.workspace = {} as IWorkspace;
         this.name = '';
+        this.loading = true;
       },
       set_svg_url(svg_id: string): void {
         const svg = document.getElementById('svg_' + svg_id);
