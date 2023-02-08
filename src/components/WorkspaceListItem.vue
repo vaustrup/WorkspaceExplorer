@@ -30,7 +30,7 @@ function enable_popup(): void {
   <q-item>
     <q-item-section>
       <div v-if="workspace_store.loading">
-        <q-skeleton type="text"></q-skeleton>
+        <q-skeleton type="text" width="75px"></q-skeleton>
       </div>
       <div v-else>
         {{ workspace_store.name }}
