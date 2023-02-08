@@ -31,11 +31,16 @@ const height = computed(() => {
 <template>
   <q-card flat bordered style="padding: 1em, width: calc(100vw-2em);">
     <q-card-section>
-      <h2>{{ workspace_store.name }}</h2>
+      <q-skeleton v-if="workspace_store.loading" height="4em"></q-skeleton>
+      <h2 v-else>{{ workspace_store.name }}</h2>
     </q-card-section>
     <q-separator inset></q-separator>
     <!-- extra if condition needed to ensure data is not accessed before it is actually available in the store -->
-    <div v-if="workspace_store.workspace.channels !== undefined" class="column">
+    <q-skeleton v-if="workspace_store.loading" height="12em"></q-skeleton>
+    <div
+      v-else-if="workspace_store.workspace.channels !== undefined"
+      class="column"
+    >
       <q-expansion-item switch-toggle-side default-opened label="Summary">
         <div class="row justify-around">
           <div class="col-3">
