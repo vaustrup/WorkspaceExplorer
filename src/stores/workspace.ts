@@ -5,9 +5,14 @@ import type {
   IStackedChannel,
   IStackedChannelBinwise,
   IStackedProcess,
+  IUncertaintyPerChannel,
   IUncertaintyPerSystematic,
   IUncertaintySummary,
+  IUncertainty,
+  INormSys,
   IWorkspace,
+  IHistoSys,
+  IUncertaintyWithType,
 } from '../interfaces';
 import { color_scheme } from '../utils/colors';
 import { Notify } from 'quasar';
@@ -301,6 +306,231 @@ export const useWorkspaceStore = function (id: number) {
         }
         return types;
       },
+      // the methods to calculate the total uncertainties are very messy and could use some refactoring
+      uncertainties_per_systematic_per_process(state): IUncertaintySummary {
+        const total_uncertainty = {} as IUncertaintySummary;
+        for (const channel of state.workspace.channels) {
+          for (const process of channel.samples) {
+            for (const modifier of process.modifiers) {
+              if (modifier.type === 'lumi' || modifier.type === 'normfactor') {
+                continue;
+              }
+              if (
+                modifier.type !== 'histosys' &&
+                modifier.type !== 'normsys' &&
+                modifier.type !== 'staterror'
+              ) {
+                console.log(
+                  'This modifier type has not yet been implemented in the uncertainty calculation.'
+                );
+                continue;
+              }
+
+              // make sure the channel already exists as a property
+              if (!total_uncertainty.hasOwnProperty(channel.name)) {
+                total_uncertainty[channel.name] = {} as IUncertaintyPerChannel;
+                total_uncertainty[channel.name].per_systematic = {} as {
+                  [key: string]: IUncertaintyPerSystematic;
+                };
+              }
+              // make sure the modifier already exists as a property in a given channel
+              if (
+                !total_uncertainty[channel.name].per_systematic.hasOwnProperty(
+                  modifier.name
+                )
+              ) {
+                total_uncertainty[channel.name].per_systematic[modifier.name] =
+                  {} as IUncertaintyPerSystematic;
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process = {} as {
+                  [key: string]: IUncertaintyWithType;
+                };
+              }
+              let is_normhisto = false;
+              // make sure the process already exists as a property for a given modifier in a given channel
+              if (
+                !total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process.hasOwnProperty(process.name)
+              ) {
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name] = {} as IUncertaintyWithType;
+              }
+              // if it had already existed beforehand, we need to be careful about systematics split into normsys and histosys parts
+              else if (
+                total_uncertainty[channel.name].per_systematic[modifier.name]
+                  .per_process[process.name].type === 'normsys'
+              ) {
+                if (modifier.type === 'histosys') {
+                  is_normhisto = true;
+                } else {
+                  console.log('invalid modifier type combination');
+                }
+              } else if (
+                total_uncertainty[channel.name].per_systematic[modifier.name]
+                  .per_process[process.name].type === 'histosys'
+              ) {
+                if (modifier.type === 'normsys') {
+                  is_normhisto = true;
+                } else {
+                  console.log('invalid modifier type combination');
+                }
+              }
+
+              let hi = [] as number[];
+              let lo = [] as number[];
+              // TODO make sure NPs that are both normsys and histosys are handled correctly
+              if (modifier.type === 'normsys') {
+                const modifier_data = modifier.data as INormSys;
+                hi = process.data.map(function (x) {
+                  return x * (modifier_data.hi - 1);
+                });
+                lo = process.data.map(function (x) {
+                  return x * (modifier_data.lo - 1);
+                });
+              } else if (modifier.type === 'staterror') {
+                const modifier_data = modifier.data as number[];
+                for (let i_bin = 0; i_bin < process.data.length; i_bin++) {
+                  hi.push(modifier_data[i_bin]);
+                  lo.push(-modifier_data[i_bin]);
+                }
+              } else if (modifier.type === 'histosys') {
+                const modifier_data = modifier.data as IHistoSys;
+                for (let i_bin = 0; i_bin < process.data.length; i_bin++) {
+                  hi.push(modifier_data.hi_data[i_bin] - process.data[i_bin]);
+                  lo.push(modifier_data.lo_data[i_bin] - process.data[i_bin]);
+                }
+              }
+              if (!is_normhisto) {
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name] = {
+                  hi: hi,
+                  lo: lo,
+                  type: modifier.type,
+                };
+              } else {
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name].hi = total_uncertainty[
+                  channel.name
+                ].per_systematic[modifier.name].per_process[
+                  process.name
+                ].hi.map(function (num, idx) {
+                  return num + hi[idx];
+                });
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name].lo = total_uncertainty[
+                  channel.name
+                ].per_systematic[modifier.name].per_process[
+                  process.name
+                ].lo.map(function (num, idx) {
+                  return num + lo[idx];
+                });
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name].type = 'normhisto';
+              }
+            }
+          }
+        }
+        return total_uncertainty;
+      },
+      uncertainties_per_systematic(): IUncertaintySummary {
+        const total_uncertainty = this.uncertainties_per_systematic_per_process;
+        for (const channel_name in total_uncertainty) {
+          for (const modifier_name in total_uncertainty[channel_name]
+            .per_systematic) {
+            const hi = new Array(
+              Object.values(
+                total_uncertainty[channel_name].per_systematic[modifier_name]
+                  .per_process
+              )[0].hi.length
+            ).fill(0) as number[];
+            const lo = new Array(hi.length).fill(0) as number[];
+            for (const process_name in total_uncertainty[channel_name]
+              .per_systematic[modifier_name].per_process) {
+              for (
+                let i_bin = 0;
+                i_bin <
+                total_uncertainty[channel_name].per_systematic[modifier_name]
+                  .per_process[process_name].hi.length;
+                i_bin++
+              ) {
+                hi[i_bin] +=
+                  total_uncertainty[channel_name].per_systematic[
+                    modifier_name
+                  ].per_process[process_name].hi[i_bin];
+                lo[i_bin] +=
+                  total_uncertainty[channel_name].per_systematic[
+                    modifier_name
+                  ].per_process[process_name].lo[i_bin];
+              }
+            }
+            total_uncertainty[channel_name].per_systematic[
+              modifier_name
+            ].overall = { hi: hi, lo: lo };
+          }
+        }
+        return total_uncertainty;
+      },
+      uncertainties(): IUncertaintySummary {
+        const total_uncertainty = this.uncertainties_per_systematic;
+        for (const channel_name in total_uncertainty) {
+          // calculate total uncertainty per bin by adding squares of relative uncertainties
+          total_uncertainty[channel_name].overall = {} as IUncertainty;
+          const stacked_data = this.stacked_data_per_bin.filter((channel) => {
+            return channel.name === channel_name;
+          })[0];
+          const hi = new Array(
+            Object.values(
+              total_uncertainty[channel_name].per_systematic
+            )[0].overall.hi.length
+          ).fill(0);
+          const lo = new Array(hi.length).fill(0);
+          for (const modifier_name in total_uncertainty[channel_name]
+            .per_systematic) {
+            for (
+              let i_bin = 0;
+              i_bin <
+              total_uncertainty[channel_name].per_systematic[modifier_name]
+                .overall.hi.length;
+              i_bin++
+            ) {
+              // calculate relative uncertainty
+              const nominal =
+                stacked_data.content[i_bin][
+                  stacked_data.content[i_bin].length - 1
+                ].high;
+              hi[i_bin] +=
+                (total_uncertainty[channel_name].per_systematic[modifier_name]
+                  .overall.hi[i_bin] /
+                  nominal) **
+                2;
+              lo[i_bin] +=
+                (total_uncertainty[channel_name].per_systematic[modifier_name]
+                  .overall.lo[i_bin] /
+                  nominal) **
+                2;
+            }
+          }
+          for (let i_bin = 0; i_bin < hi.length; i_bin++) {
+            const nominal =
+              stacked_data.content[i_bin][
+                stacked_data.content[i_bin].length - 1
+              ].high;
+            hi[i_bin] = hi[i_bin] ** 0.5 * nominal;
+            lo[i_bin] = lo[i_bin] ** 0.5 * nominal;
+          }
+          total_uncertainty[channel_name].overall = { hi: hi, lo: lo };
+        }
+        console.log(total_uncertainty);
+
+        return total_uncertainty;
+      },
     },
     actions: {
       load_workspace_from_local_file(file: File): void {
@@ -313,6 +543,7 @@ export const useWorkspaceStore = function (id: number) {
             const workspace: IWorkspace = JSON.parse(reader.result.toString());
             this.workspace = workspace;
             this.name = file.name;
+            console.log(workspace);
           } catch (e) {
             console.log(e);
             Notify.create({

@@ -21,7 +21,7 @@ export interface IModifier {
 
 export interface INormSys {
   hi: number;
-  low: number;
+  lo: number;
 }
 
 export interface IHistoSys {
@@ -100,13 +100,24 @@ export interface INormFactor {
   fixed: boolean;
 }
 
+export interface IUncertaintyWithType {
+  hi: number[];
+  lo: number[];
+  type: string;
+}
+
+export interface IUncertainty {
+  hi: number[];
+  lo: number[];
+}
+
 export interface IUncertaintyPerSystematic {
-  overall: number[];
-  per_process: { [key: string]: number[] };
+  overall: IUncertainty;
+  per_process: { [key: string]: IUncertaintyWithType };
 }
 
 export interface IUncertaintyPerChannel {
-  overall: number[];
+  overall: IUncertainty;
   per_systematic: { [key: string]: IUncertaintyPerSystematic };
 }
 
