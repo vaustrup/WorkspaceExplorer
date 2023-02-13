@@ -204,6 +204,25 @@ function unhighlight(): void {
             @mouseleave="unhighlight"
           />
         </template>
+        <rect
+          :x="bin_width * bin + 100"
+          :width="bin_width"
+          :y="
+            350 -
+            vertical_scale(0, maximum, 0, 300) *
+              (workspace_store.stacked_data_per_bin[channel_index].content[bin][
+                workspace_store.process_names.length - 1
+              ].high +
+                workspace_store.uncertainties['SR'].overall.hi[bin])
+          "
+          :height="
+            vertical_scale(0, maximum, 0, 300) *
+            (workspace_store.uncertainties['SR'].overall.hi[bin] +
+              workspace_store.uncertainties['SR'].overall.lo[bin])
+          "
+          fill="black"
+          fill-opacity="0.4"
+        />
         <circle
           :cx="bin_width * (bin + 0.5) + 100"
           :cy="
