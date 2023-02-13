@@ -12,6 +12,7 @@ import type {
   INormSys,
   IWorkspace,
   IHistoSys,
+  IUncertaintyWithType,
 } from '../interfaces';
 import { color_scheme } from '../utils/colors';
 import { Notify } from 'quasar';
@@ -314,6 +315,70 @@ export const useWorkspaceStore = function (id: number) {
               if (modifier.type === 'lumi' || modifier.type === 'normfactor') {
                 continue;
               }
+              if (
+                modifier.type !== 'histosys' &&
+                modifier.type !== 'normsys' &&
+                modifier.type !== 'staterror'
+              ) {
+                console.log(
+                  'This modifier type has not yet been implemented in the uncertainty calculation.'
+                );
+                continue;
+              }
+
+              // make sure the channel already exists as a property
+              if (!total_uncertainty.hasOwnProperty(channel.name)) {
+                total_uncertainty[channel.name] = {} as IUncertaintyPerChannel;
+                total_uncertainty[channel.name].per_systematic = {} as {
+                  [key: string]: IUncertaintyPerSystematic;
+                };
+              }
+              // make sure the modifier already exists as a property in a given channel
+              if (
+                !total_uncertainty[channel.name].per_systematic.hasOwnProperty(
+                  modifier.name
+                )
+              ) {
+                total_uncertainty[channel.name].per_systematic[modifier.name] =
+                  {} as IUncertaintyPerSystematic;
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process = {} as {
+                  [key: string]: IUncertaintyWithType;
+                };
+              }
+              let is_normhisto = false;
+              // make sure the process already exists as a property for a given modifier in a given channel
+              if (
+                !total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process.hasOwnProperty(process.name)
+              ) {
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name] = {} as IUncertaintyWithType;
+              }
+              // if it had already existed beforehand, we need to be careful about systematics split into normsys and histosys parts
+              else if (
+                total_uncertainty[channel.name].per_systematic[modifier.name]
+                  .per_process[process.name].type === 'normsys'
+              ) {
+                if (modifier.type === 'histosys') {
+                  is_normhisto = true;
+                } else {
+                  console.log('invalid modifier type combination');
+                }
+              } else if (
+                total_uncertainty[channel.name].per_systematic[modifier.name]
+                  .per_process[process.name].type === 'histosys'
+              ) {
+                if (modifier.type === 'normsys') {
+                  is_normhisto = true;
+                } else {
+                  console.log('invalid modifier type combination');
+                }
+              }
+
               let hi = [] as number[];
               let lo = [] as number[];
               // TODO make sure NPs that are both normsys and histosys are handled correctly
@@ -337,43 +402,38 @@ export const useWorkspaceStore = function (id: number) {
                   hi.push(modifier_data.hi_data[i_bin] - process.data[i_bin]);
                   lo.push(modifier_data.lo_data[i_bin] - process.data[i_bin]);
                 }
+              }
+              if (!is_normhisto) {
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name] = {
+                  hi: hi,
+                  lo: lo,
+                  type: modifier.type,
+                };
               } else {
-                console.log(
-                  'This modifier type has not yet been implemented in the uncertainty calculation.'
-                );
-                continue;
-              }
-              if (!total_uncertainty.hasOwnProperty(channel.name)) {
-                total_uncertainty[channel.name] = {} as IUncertaintyPerChannel;
-                total_uncertainty[channel.name].per_systematic = {} as {
-                  [key: string]: IUncertaintyPerSystematic;
-                };
-              }
-              if (
-                !total_uncertainty[channel.name].per_systematic.hasOwnProperty(
-                  modifier.name
-                )
-              ) {
-                total_uncertainty[channel.name].per_systematic[modifier.name] =
-                  {} as IUncertaintyPerSystematic;
                 total_uncertainty[channel.name].per_systematic[
                   modifier.name
-                ].per_process = {} as {
-                  [key: string]: IUncertainty;
-                };
-              }
-              if (
-                !total_uncertainty[channel.name].per_systematic[
-                  modifier.name
-                ].per_process.hasOwnProperty(process.name)
-              ) {
+                ].per_process[process.name].hi = total_uncertainty[
+                  channel.name
+                ].per_systematic[modifier.name].per_process[
+                  process.name
+                ].hi.map(function (num, idx) {
+                  return num + hi[idx];
+                });
                 total_uncertainty[channel.name].per_systematic[
                   modifier.name
-                ].per_process[process.name] = {} as IUncertainty;
+                ].per_process[process.name].lo = total_uncertainty[
+                  channel.name
+                ].per_systematic[modifier.name].per_process[
+                  process.name
+                ].lo.map(function (num, idx) {
+                  return num + lo[idx];
+                });
+                total_uncertainty[channel.name].per_systematic[
+                  modifier.name
+                ].per_process[process.name].type = 'normhisto';
               }
-              total_uncertainty[channel.name].per_systematic[
-                modifier.name
-              ].per_process[process.name] = { hi: hi, lo: lo };
             }
           }
         }

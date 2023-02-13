@@ -100,6 +100,12 @@ export interface INormFactor {
   fixed: boolean;
 }
 
+export interface IUncertaintyWithType {
+  hi: number[];
+  lo: number[];
+  type: string;
+}
+
 export interface IUncertainty {
   hi: number[];
   lo: number[];
@@ -107,7 +113,7 @@ export interface IUncertainty {
 
 export interface IUncertaintyPerSystematic {
   overall: IUncertainty;
-  per_process: { [key: string]: IUncertainty };
+  per_process: { [key: string]: IUncertaintyWithType };
 }
 
 export interface IUncertaintyPerChannel {
