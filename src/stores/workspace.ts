@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { useStoreIDStore } from './storeid';
 import type {
-  IHEPdataanalysis,
+  IAnalysis,
   IStackedChannel,
   IStackedChannelBinwise,
   IStackedProcess,
@@ -328,22 +328,15 @@ export const useWorkspaceStore = function (id: number) {
         reader.readAsText(file);
         this.loading = false;
       },
-      async load_workspace_from_HEPdata(
-        analysis: IHEPdataanalysis,
-        hepdata_id: string,
-        ws_index: number
-      ): Promise<void> {
+      async load_workspace_from_HEPdata(analysis: IAnalysis): Promise<void> {
         const response = await (
           await fetch(
-            analysis.analysis.replace(
-              'landing_page=true',
-              'format=json&light=true'
-            )
+            analysis.url.replace('landing_page=true', 'format=json&light=true')
           )
         ).json();
         const workspace = JSON.parse(response.file_contents);
         this.workspace = workspace;
-        this.name = 'HEPdataID' + hepdata_id + 'WS' + ws_index;
+        this.name = analysis.name;
         this.loading = false;
       },
       delete_workspace(): void {

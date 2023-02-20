@@ -1,10 +1,22 @@
 export interface IHEPdataentry {
   record: { analyses: IHEPdataanalysis[] };
+  resources_with_doi: IDOIentry[];
+}
+
+export interface IDOIentry {
+  description: string;
+  filename: string;
+  doi: string;
 }
 
 export interface IHEPdataanalysis {
   type: string;
   analysis: string;
+}
+
+export interface IAnalysis {
+  name: string;
+  url: string;
 }
 
 export interface IProcess {
