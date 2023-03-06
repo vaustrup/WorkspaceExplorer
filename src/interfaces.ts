@@ -19,6 +19,11 @@ export interface IAnalysis {
   url: string;
 }
 
+export interface IAnalysisOption {
+  label: string;
+  value: IAnalysis;
+}
+
 export interface IProcess {
   name: string;
   data: number[];

@@ -2,13 +2,13 @@
 import { ref, computed } from 'vue';
 import { useStoreIDStore } from '../stores/storeid';
 import { Notify, QFile, QPopupProxy } from 'quasar';
-import type { IAnalysis } from 'src/interfaces';
+import type { IAnalysis, IAnalysisOption } from 'src/interfaces';
 
 const storeid_store = useStoreIDStore();
 
 const hepdata_id = ref('');
 const analyses = ref([] as IAnalysis[]);
-let analyses_to_load = [] as IAnalysis[];
+let analyses_to_load = [] as IAnalysisOption[];
 const files = ref();
 const button_is_disabled = computed(() => {
   return hepdata_id.value === '';
@@ -37,14 +37,16 @@ async function on_click(): Promise<void> {
   analyses.value = await storeid_store.check_workspaces_on_HEPdata(
     hepdata_id.value
   );
-  analyses_to_load = analyses.value;
-  hepdata_id.value = '';
+  analyses_to_load = analyses.value.map((analysis) => {
+    return { label: analysis.name, value: analysis };
+  });
   popup.value?.show();
 }
 
 async function load_workspaces(): Promise<void> {
   storeid_store.load_workspaces_from_HEPdata(analyses.value);
   popup.value?.hide();
+  hepdata_id.value = '';
 }
 </script>
 
@@ -82,19 +84,19 @@ async function load_workspaces(): Promise<void> {
       />
       <q-btn :disabled="button_is_disabled" @click="on_click()"
         >Read from HEPdata
+        <q-popup-proxy ref="popup">
+          <q-page-container style="padding: 10px">
+            <q-skeleton v-if="storeid_store.checking" height="6em"></q-skeleton>
+            <q-option-group
+              v-else
+              v-model="analyses"
+              :options="analyses_to_load"
+              type="checkbox"
+            ></q-option-group>
+            <q-btn @click="load_workspaces()">Load Selected Workspaces</q-btn>
+          </q-page-container>
+        </q-popup-proxy>
       </q-btn>
-      <q-popup-proxy ref="popup">
-        <q-page-container style="padding: 0px">
-          <q-checkbox
-            v-for="analysis in analyses"
-            :key="analysis.name"
-            v-model="analyses_to_load"
-            :val="analysis"
-            :label="analysis.name"
-          ></q-checkbox>
-          <q-btn @click="load_workspaces()">Load Selected Workspaces</q-btn>
-        </q-page-container>
-      </q-popup-proxy>
     </div>
   </div>
 </template>

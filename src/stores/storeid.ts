@@ -7,6 +7,7 @@ export const useStoreIDStore = defineStore('storeids', {
   state: () => ({
     ids: [] as number[],
     free_ids: [] as number[],
+    checking: false as boolean,
   }),
   actions: {
     load_workspaces_from_local_files(files: FileList): void {
@@ -19,6 +20,7 @@ export const useStoreIDStore = defineStore('storeids', {
     async check_workspaces_on_HEPdata(
       hepdata_id: string
     ): Promise<IAnalysis[]> {
+      this.checking = true;
       const hepdata_url =
         'https://www.hepdata.net/record/ins' +
         hepdata_id +
@@ -61,6 +63,7 @@ export const useStoreIDStore = defineStore('storeids', {
         });
         return [];
       }
+      this.checking = false;
       return analyses;
     },
     async load_workspaces_from_HEPdata(analyses: IAnalysis[]): Promise<void> {
