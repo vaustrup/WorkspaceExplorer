@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia';
 import { useWorkspaceStore } from './workspace';
-import type { IHEPdataanalysis, IHEPdataentry } from '../interfaces';
+import type { IAnalysis, IHEPdataentry } from '../interfaces';
 import { Notify } from 'quasar';
 
 export const useStoreIDStore = defineStore('storeids', {
   state: () => ({
     ids: [] as number[],
     free_ids: [] as number[],
+    checking: false as boolean,
   }),
   actions: {
     load_workspaces_from_local_files(files: FileList): void {
@@ -16,7 +17,10 @@ export const useStoreIDStore = defineStore('storeids', {
         workspace_store.load_workspace_from_local_file(f);
       }
     },
-    async load_workspaces_from_HEPdata(hepdata_id: string): Promise<void> {
+    async check_workspaces_on_HEPdata(
+      hepdata_id: string
+    ): Promise<IAnalysis[]> {
+      this.checking = true;
       const hepdata_url =
         'https://www.hepdata.net/record/ins' +
         hepdata_id +
@@ -32,12 +36,23 @@ export const useStoreIDStore = defineStore('storeids', {
           icon: 'report_problem',
           position: 'top',
         });
-        return;
+        return [];
       }
-      const analyses: IHEPdataanalysis[] | undefined =
-        hepdata_entry?.record.analyses.filter(
-          (analysis: IHEPdataanalysis) => analysis.type === 'HistFactory'
-        );
+      const analyses: IAnalysis[] | undefined = [];
+      if (hepdata_entry?.record.analyses === undefined) {
+        return [];
+      }
+      let analysis_index = -1;
+      for (const analysis of hepdata_entry?.record.analyses) {
+        analysis_index++;
+        if (analysis.type !== 'HistFactory') {
+          continue;
+        }
+        analyses.push({
+          name: hepdata_entry.resources_with_doi[analysis_index].filename,
+          url: analysis.analysis,
+        });
+      }
       if (analyses === undefined || analyses.length === 0) {
         Notify.create({
           message:
@@ -46,18 +61,16 @@ export const useStoreIDStore = defineStore('storeids', {
           icon: 'report_problem',
           position: 'top',
         });
-        return;
+        return [];
       }
-      let ws_index = 0;
+      this.checking = false;
+      return analyses;
+    },
+    async load_workspaces_from_HEPdata(analyses: IAnalysis[]): Promise<void> {
       for (const analysis of analyses) {
         const id = this.add_store_with_id();
         const workspace_store = useWorkspaceStore(id)();
-        ws_index++;
-        workspace_store.load_workspace_from_HEPdata(
-          analysis,
-          hepdata_id,
-          ws_index
-        );
+        workspace_store.load_workspace_from_HEPdata(analysis);
       }
     },
     remove_store_with_id(id: number): void {

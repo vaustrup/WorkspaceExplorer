@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useStoreIDStore } from '../stores/storeid';
-import { Notify, QFile } from 'quasar';
+import { Notify, QFile, QPopupProxy } from 'quasar';
+import type { IAnalysis, IAnalysisOption } from 'src/interfaces';
 
 const storeid_store = useStoreIDStore();
 
 const hepdata_id = ref('');
+const analyses = ref([] as IAnalysis[]);
+let analyses_to_load = [] as IAnalysisOption[];
 const files = ref();
 const button_is_disabled = computed(() => {
   return hepdata_id.value === '';
 });
 
 const file_input = ref<InstanceType<typeof QFile>>();
+
+// we need the ref to the popup proxy element in order to be able
+// to toggle it once the workspaces are loaded
+const popup = ref<InstanceType<typeof QPopupProxy>>();
 
 function on_rejected(): void {
   Notify.create({
@@ -27,7 +34,18 @@ function get_file(): void {
 }
 
 async function on_click(): Promise<void> {
-  await storeid_store.load_workspaces_from_HEPdata(hepdata_id.value);
+  analyses.value = await storeid_store.check_workspaces_on_HEPdata(
+    hepdata_id.value
+  );
+  analyses_to_load = analyses.value.map((analysis) => {
+    return { label: analysis.name, value: analysis };
+  });
+  popup.value?.show();
+}
+
+async function load_workspaces(): Promise<void> {
+  storeid_store.load_workspaces_from_HEPdata(analyses.value);
+  popup.value?.hide();
   hepdata_id.value = '';
 }
 </script>
@@ -65,8 +83,20 @@ async function on_click(): Promise<void> {
         style="margin-right: 1em"
       />
       <q-btn :disabled="button_is_disabled" @click="on_click()"
-        >Read from HEPdata</q-btn
-      >
+        >Read from HEPdata
+        <q-popup-proxy ref="popup">
+          <q-page-container style="padding: 10px">
+            <q-skeleton v-if="storeid_store.checking" height="6em"></q-skeleton>
+            <q-option-group
+              v-else
+              v-model="analyses"
+              :options="analyses_to_load"
+              type="checkbox"
+            ></q-option-group>
+            <q-btn @click="load_workspaces()">Load Selected Workspaces</q-btn>
+          </q-page-container>
+        </q-popup-proxy>
+      </q-btn>
     </div>
   </div>
 </template>
