@@ -7,7 +7,7 @@ It gives an overview of the samples and the channels involved, as well as the no
 Contents of the different channels are shown as stacked plots.
 In addition, the modifier structure for the various channels and processes is visualised.
 
-The latest version is deployed via Netlify and can be accessed via the following link: [https://workspaceexplorer.netlify.app/](https://workspaceexplorer.netlify.app/).
+The latest version is deployed on CERN under [https://workspaceexplorer.app.cern.ch](https://workspaceexplorer.app.cern.ch) and can also be accessed on Netlify via the following link: [https://workspaceexplorer.netlify.app/](https://workspaceexplorer.netlify.app/).
 
 You can, however, also run the tool locally. Simply clone this repository and inside the directory first install the necessary dependencies with
 
