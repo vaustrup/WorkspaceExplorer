@@ -30,7 +30,7 @@ const route = useRoute();
 
 onMounted(() => {
   if (route.query.id) {
-    store_id_store.load_workspaces_from_HEPdata(route.query.id as string);
+    store_id_store.check_workspaces_on_HEPdata(route.query.id as string);
   }
 });
 </script>
