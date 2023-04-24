@@ -118,15 +118,21 @@ function xaxis_path(): string {
           <line
             :x1="
               2 * sigma_width +
-              (workspace_store.fitresults.bestfit[np_index] -
-                workspace_store.fitresults.uncertainty[np_index]) *
+              Math.max(
+                workspace_store.fitresults.bestfit[np_index] -
+                  workspace_store.fitresults.uncertainty[np_index],
+                -2
+              ) *
                 sigma_width +
               ylabel_offset
             "
             :x2="
               2 * sigma_width +
-              (workspace_store.fitresults.bestfit[np_index] +
-                workspace_store.fitresults.uncertainty[np_index]) *
+              Math.min(
+                workspace_store.fitresults.bestfit[np_index] +
+                  workspace_store.fitresults.uncertainty[np_index],
+                2
+              ) *
                 sigma_width +
               ylabel_offset
             "
