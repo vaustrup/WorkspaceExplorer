@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { reactive, computed } from 'vue';
 import { useWorkspaceStore } from '../stores/workspace';
 import DownloadHelper from './DownloadHelper.vue';
 
@@ -8,6 +8,17 @@ const props = defineProps<{
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
+
+// highlight NPs on mouseover
+const state = reactive({ highlighted_np_index: -999 });
+
+function highlight(index: number): void {
+  state.highlighted_np_index = index;
+}
+
+function unhighlight(): void {
+  state.highlighted_np_index = -999;
+}
 
 const height_per_entry = 25;
 
@@ -78,6 +89,13 @@ function xaxis_path(): string {
             :y="np_index * height_per_entry + height_per_entry / 2"
             x="0"
             text-anchor="end"
+            dominant-baseline="middle"
+            :class="{
+              isnothighlighted: !(
+                state.highlighted_np_index === -999 ||
+                np_index === state.highlighted_np_index
+              ),
+            }"
           >
             {{ np }}
           </text>
@@ -90,6 +108,12 @@ function xaxis_path(): string {
             :cy="np_index * height_per_entry + height_per_entry / 2"
             fill="black"
             r="5"
+            :class="{
+              isnothighlighted: !(
+                state.highlighted_np_index === -999 ||
+                np_index === state.highlighted_np_index
+              ),
+            }"
           />
           <line
             :x1="
@@ -109,7 +133,44 @@ function xaxis_path(): string {
             :y1="np_index * height_per_entry + height_per_entry / 2"
             :y2="np_index * height_per_entry + height_per_entry / 2"
             stroke="black"
+            :class="{
+              isnothighlighted: !(
+                state.highlighted_np_index === -999 ||
+                np_index === state.highlighted_np_index
+              ),
+            }"
           />
+          <rect
+            :x="-ylabel_width"
+            :y="np_index * height_per_entry"
+            :height="height_per_entry"
+            :width="width"
+            fill-opacity="0"
+            stroke-opacity="0"
+            stroke="black"
+            @mouseover="highlight(np_index)"
+            @mouseleave="unhighlight"
+            :class="{
+              ishighlighted: np_index === state.highlighted_np_index,
+            }"
+          >
+            <title>
+              {{
+                'NP' +
+                np +
+                ': ' +
+                Math.round(
+                  workspace_store.fitresults.bestfit[np_index] * 1000
+                ) /
+                  1000 +
+                ' &#177; ' +
+                Math.round(
+                  workspace_store.fitresults.uncertainty[np_index] * 1000
+                ) /
+                  1000
+              }}
+            </title>
+          </rect>
         </template>
         <path fill="none" stroke="black" :d="xaxis_path()"></path>
         <text
@@ -132,3 +193,24 @@ function xaxis_path(): string {
     </svg>
   </div>
 </template>
+
+<style scoped>
+circle.isnothighlighted {
+  fill-opacity: 0.3;
+  transition: fill-opacity 0.5s ease;
+}
+
+line.isnothighlighted {
+  stroke-opacity: 0.3;
+  transition: fill-opacity 0.5s ease;
+}
+
+text.isnothighlighted {
+  fill: grey;
+  transition: fill 0.5s ease;
+}
+
+rect.ishighlighted {
+  stroke-opacity: 1;
+}
+</style>
