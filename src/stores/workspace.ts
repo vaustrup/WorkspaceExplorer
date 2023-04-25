@@ -370,7 +370,6 @@ export const useWorkspaceStore = function (id: number) {
           .then((response) => response.json())
           .then((data) => {
             this.result_id = data.result_id;
-            console.log(this.result_id);
           });
         this.fitting = true;
         await (async () => {
@@ -386,6 +385,7 @@ export const useWorkspaceStore = function (id: number) {
                 this.fitresults = response_data.value;
                 this.fitted = true;
                 this.fitting = false;
+                console.log(this.fitresults);
               } else {
                 return poll();
               }

@@ -27,6 +27,7 @@ export interface IAnalysisOption {
 export interface IFitResults {
   bestfit: number[];
   uncertainty: number[];
+  correlations: number[][];
   labels: string[];
 }
 

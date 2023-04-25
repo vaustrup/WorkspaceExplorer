@@ -10,6 +10,7 @@ import ProcessListItem from './ProcessListItem.vue';
 import ChannelListItem from './ChannelListItem.vue';
 import NormFactorListItem from './NormFactorListItem.vue';
 import { useWorkspaceStore } from '../stores/workspace';
+import CorrelationChart from './CorrelationChart.vue';
 
 const props = defineProps<{
   id: number;
@@ -142,6 +143,7 @@ const height = computed(() => {
           >
           <div v-if="workspace_store.fitted" class="row justify-around">
             <PullChart :id="id" />
+            <CorrelationChart :id="id" />
           </div>
         </q-expansion-item>
       </div>
