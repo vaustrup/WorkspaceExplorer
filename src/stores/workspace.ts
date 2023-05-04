@@ -361,31 +361,33 @@ export const useWorkspaceStore = function (id: number) {
         this.download_urls = {} as { [key: string]: string };
       },
       async get_fit_results(): Promise<void> {
-        const requestOptions = {
+        this.fitting = true;
+        const url =
+          'https://workspaceexplorerbackend-workspaceexplorerbackend.app.cern.ch/api/v1/workspace';
+        const postRequestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ workspace: this.workspace }),
         };
-        await fetch('http://127.0.0.1:5000/api/v1/workspace', requestOptions)
+        await fetch(url, postRequestOptions)
           .then((response) => response.json())
           .then((data) => {
             this.result_id = data.result_id;
           });
-        this.fitting = true;
+        const getRequestOptions = {
+          method: 'GET',
+        };
         await (async () => {
           const poll = () => {
             setTimeout(async () => {
               let response_data = {} as ITaskResults;
-              await fetch(
-                'http://127.0.0.1:5000/api/v1/workspace/' + this.result_id
-              )
+              await fetch(url + '/' + this.result_id, getRequestOptions)
                 .then((response) => response.json())
                 .then((data) => (response_data = data));
               if (response_data.ready) {
                 this.fitresults = response_data.value;
                 this.fitted = true;
                 this.fitting = false;
-                console.log(this.fitresults);
               } else {
                 return poll();
               }
