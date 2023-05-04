@@ -4,11 +4,13 @@ import NormalizedBarChart from './NormalizedBarChart.vue';
 import PieChart from './PieChart.vue';
 import StackedChart from './StackedChart.vue';
 import ModifierStructureChart from './ModifierStructureChart.vue';
+import PullChart from './PullChart.vue';
 import HorizontalScrollArea from './HorizontalScrollArea.vue';
 import ProcessListItem from './ProcessListItem.vue';
 import ChannelListItem from './ChannelListItem.vue';
 import NormFactorListItem from './NormFactorListItem.vue';
 import { useWorkspaceStore } from '../stores/workspace';
+import CorrelationChart from './CorrelationChart.vue';
 
 const props = defineProps<{
   id: number;
@@ -130,6 +132,19 @@ const height = computed(() => {
             :id="id"
             style="width: 100%; margin-top: 1em; margin-bottom: 1em"
           />
+        </q-expansion-item>
+        <q-separator inset></q-separator>
+        <q-expansion-item switch-toggle-side label="Fit Results">
+          <q-btn
+            @click="workspace_store.get_fit_results()"
+            :loading="workspace_store.fitting"
+            :disable="workspace_store.fitting || workspace_store.fitted"
+            >Fit Workspace</q-btn
+          >
+          <div v-if="workspace_store.fitted" class="row justify-around">
+            <PullChart :id="id" />
+            <CorrelationChart :id="id" />
+          </div>
         </q-expansion-item>
       </div>
     </div>

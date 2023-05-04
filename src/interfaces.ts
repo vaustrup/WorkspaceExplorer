@@ -24,6 +24,19 @@ export interface IAnalysisOption {
   value: IAnalysis;
 }
 
+export interface IFitResults {
+  bestfit: number[];
+  uncertainty: number[];
+  correlations: number[][];
+  labels: string[];
+}
+
+export interface ITaskResults {
+  ready: boolean;
+  successful: boolean;
+  value: IFitResults;
+}
+
 export interface IProcess {
   name: string;
   data: number[];

@@ -7,6 +7,8 @@ import type {
   IStackedProcess,
   IUncertaintyPerSystematic,
   IUncertaintySummary,
+  IFitResults,
+  ITaskResults,
   IWorkspace,
 } from '../interfaces';
 import { color_scheme } from '../utils/colors';
@@ -22,6 +24,10 @@ export const useWorkspaceStore = function (id: number) {
       process_color_index: {} as { [key: string]: string },
       download_urls: {} as { [key: string]: string },
       loading: true as boolean,
+      fitresults: {} as IFitResults,
+      fitted: false as boolean,
+      fitting: false as boolean,
+      result_id: '',
     }),
     getters: {
       process_names(): string[] {
@@ -345,6 +351,50 @@ export const useWorkspaceStore = function (id: number) {
         this.workspace = {} as IWorkspace;
         this.name = '';
         this.loading = true;
+        this.fitted = false;
+        this.fitting = false;
+        this.result_id = '';
+        this.fitresults = {} as IFitResults;
+        this.process_title_index = {} as { [key: string]: string };
+        this.channel_title_index = {} as { [key: string]: string };
+        this.process_color_index = {} as { [key: string]: string };
+        this.download_urls = {} as { [key: string]: string };
+      },
+      async get_fit_results(): Promise<void> {
+        this.fitting = true;
+        const url =
+          'https://workspaceexplorerbackend-workspaceexplorerbackend.app.cern.ch/api/v1/workspace';
+        const postRequestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspace: this.workspace }),
+        };
+        await fetch(url, postRequestOptions)
+          .then((response) => response.json())
+          .then((data) => {
+            this.result_id = data.result_id;
+          });
+        const getRequestOptions = {
+          method: 'GET',
+        };
+        await (async () => {
+          const poll = () => {
+            setTimeout(async () => {
+              let response_data = {} as ITaskResults;
+              await fetch(url + '/' + this.result_id, getRequestOptions)
+                .then((response) => response.json())
+                .then((data) => (response_data = data));
+              if (response_data.ready) {
+                this.fitresults = response_data.value;
+                this.fitted = true;
+                this.fitting = false;
+              } else {
+                return poll();
+              }
+            }, 10000);
+          };
+          return poll();
+        })();
       },
       set_svg_url(svg_id: string): void {
         const svg = document.getElementById('svg_' + svg_id);
