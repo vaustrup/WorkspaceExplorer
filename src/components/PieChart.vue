@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
+import { computed } from 'vue';
 import type { IStackedProcess } from '../interfaces';
 import { useWorkspaceStore } from '../stores/workspace';
 import DownloadHelper from './DownloadHelper.vue';
+import useHighlighted from '../composables/useHighlighted';
+
+const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
 const props = defineProps<{
   id: number;
@@ -66,17 +69,6 @@ function polar_to_cartesian(
 // plotting style
 const radius = 100;
 
-// highlight processes on mouseover
-const state = reactive({ highlighted_process_index: -999 });
-
-function highlight(index: number): void {
-  state.highlighted_process_index = index;
-}
-
-function unhighlight(): void {
-  state.highlighted_process_index = -999;
-}
-
 // the height of the plot should be at least the diameter of the pie chart
 // but it also has to be large enough to contain all legend entries
 const height = computed(() => {
@@ -120,10 +112,7 @@ const height = computed(() => {
         :d="pie_chart_path(process)"
         :fill="workspace_store.colors[process.name]"
         :class="{
-          isnothighlighted: !(
-            state.highlighted_process_index === -999 ||
-            process_index === state.highlighted_process_index
-          ),
+          isnothighlighted: !ishighlighted(process_index),
         }"
         @mouseover="highlight(process_index)"
         @mouseleave="unhighlight"
@@ -141,10 +130,7 @@ const height = computed(() => {
           :y="25 * process_index"
           :id="process.name"
           :class="{
-            isnothighlighted: !(
-              state.highlighted_process_index === -999 ||
-              process_index === state.highlighted_process_index
-            ),
+            isnothighlighted: !ishighlighted(process_index),
           }"
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"
@@ -154,10 +140,7 @@ const height = computed(() => {
           :y="15 + 25 * process_index"
           :id="process.name"
           :class="{
-            isnothighlighted: !(
-              state.highlighted_process_index === -999 ||
-              process_index === state.highlighted_process_index
-            ),
+            isnothighlighted: !ishighlighted(process_index),
           }"
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"

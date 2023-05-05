@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed } from 'vue';
 import { useWorkspaceStore } from '../stores/workspace';
 import DownloadHelper from './DownloadHelper.vue';
+import useHighlighted from '../composables/useHighlighted';
+
+const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
 const props = defineProps<{
   id: number;
@@ -127,17 +130,6 @@ function yaxis_path(): string {
   }
   return path;
 }
-
-// highlight processes on mouseover
-const state = reactive({ highlighted_process_index: -999 });
-
-function highlight(index: number): void {
-  state.highlighted_process_index = index;
-}
-
-function unhighlight(): void {
-  state.highlighted_process_index = -999;
-}
 </script>
 
 <template>
@@ -195,10 +187,7 @@ function unhighlight(): void {
             "
             :fill="workspace_store.colors[process_name]"
             :class="{
-              isnothighlighted: !(
-                state.highlighted_process_index === -999 ||
-                process_index === state.highlighted_process_index
-              ),
+              isnothighlighted: !ishighlighted(process_index),
             }"
             @mouseover="highlight(process_index)"
             @mouseleave="unhighlight"
@@ -305,10 +294,7 @@ function unhighlight(): void {
           "
           :id="process.name"
           :class="{
-            isnothighlighted: !(
-              state.highlighted_process_index === -999 ||
-              process_index === state.highlighted_process_index
-            ),
+            isnothighlighted: !ishighlighted(process_index),
           }"
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"
@@ -324,10 +310,7 @@ function unhighlight(): void {
           "
           :id="process.name"
           :class="{
-            isnothighlighted: !(
-              state.highlighted_process_index === -999 ||
-              process_index === state.highlighted_process_index
-            ),
+            isnothighlighted: !ishighlighted(process_index),
           }"
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"

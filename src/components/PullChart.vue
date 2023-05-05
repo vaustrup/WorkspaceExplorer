@@ -1,24 +1,17 @@
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
+import { computed } from 'vue';
 import { useWorkspaceStore } from '../stores/workspace';
 import DownloadHelper from './DownloadHelper.vue';
+import useHighlighted from '../composables/useHighlighted';
+
+const { highlight, unhighlight, ishighlighted, highlighted_index } =
+  useHighlighted();
 
 const props = defineProps<{
   id: number;
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
-
-// highlight NPs on mouseover
-const state = reactive({ highlighted_np_index: -999 });
-
-function highlight(index: number): void {
-  state.highlighted_np_index = index;
-}
-
-function unhighlight(): void {
-  state.highlighted_np_index = -999;
-}
 
 const height_per_entry = 25;
 
@@ -91,10 +84,7 @@ function xaxis_path(): string {
             text-anchor="end"
             dominant-baseline="middle"
             :class="{
-              isnothighlighted: !(
-                state.highlighted_np_index === -999 ||
-                np_index === state.highlighted_np_index
-              ),
+              isnothighlighted: !ishighlighted(np_index),
             }"
           >
             {{ np }}
@@ -109,10 +99,7 @@ function xaxis_path(): string {
             fill="black"
             r="5"
             :class="{
-              isnothighlighted: !(
-                state.highlighted_np_index === -999 ||
-                np_index === state.highlighted_np_index
-              ),
+              isnothighlighted: !ishighlighted(np_index),
             }"
           />
           <line
@@ -140,10 +127,7 @@ function xaxis_path(): string {
             :y2="np_index * height_per_entry + height_per_entry / 2"
             stroke="black"
             :class="{
-              isnothighlighted: !(
-                state.highlighted_np_index === -999 ||
-                np_index === state.highlighted_np_index
-              ),
+              isnothighlighted: !ishighlighted(np_index),
             }"
           />
           <rect
@@ -157,7 +141,7 @@ function xaxis_path(): string {
             @mouseover="highlight(np_index)"
             @mouseleave="unhighlight"
             :class="{
-              ishighlighted: np_index === state.highlighted_np_index,
+              ishighlighted: np_index === highlighted_index,
             }"
           >
             <title>
