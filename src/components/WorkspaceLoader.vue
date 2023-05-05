@@ -48,6 +48,12 @@ async function load_workspaces(): Promise<void> {
   popup.value?.hide();
   hepdata_id.value = '';
 }
+
+async function on_example_click(): Promise<void> {
+  const url =
+    'https://raw.githubusercontent.com/vaustrup/WorkspaceExplorer/main/tests/example_workspace.json';
+  storeid_store.load_workspace_from_url(url, 'Example');
+}
 </script>
 
 <template>
@@ -98,6 +104,8 @@ async function load_workspaces(): Promise<void> {
         </q-popup-proxy>
       </q-btn>
     </div>
+    <span style="margin: 1em">or</span>
+    <q-btn @click="on_example_click()"> Try an example </q-btn>
   </div>
 </template>
 

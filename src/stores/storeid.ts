@@ -17,6 +17,11 @@ export const useStoreIDStore = defineStore('storeids', {
         workspace_store.load_workspace_from_local_file(f);
       }
     },
+    async load_workspace_from_url(url: string, name?: string): Promise<void> {
+      const id = this.add_store_with_id();
+      const workspace_store = useWorkspaceStore(id)();
+      workspace_store.load_workspace_from_url(url, name);
+    },
     async check_workspaces_on_HEPdata(
       hepdata_id: string
     ): Promise<IAnalysis[]> {
