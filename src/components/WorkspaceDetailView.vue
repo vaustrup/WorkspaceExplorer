@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import NormalizedBarChart from './NormalizedBarChart.vue';
-import PieChart from './PieChart.vue';
-import StackedChart from './StackedChart.vue';
-import ModifierStructureChart from './ModifierStructureChart.vue';
-import PullChart from './PullChart.vue';
+import NormalizedBarChart from './charts/NormalizedBarChart.vue';
+import PieChart from './charts/PieChart.vue';
+import StackedChart from './charts/StackedChart.vue';
+import ModifierStructureChart from './charts/ModifierStructureChart.vue';
+import PullChart from './charts/PullChart.vue';
 import HorizontalScrollArea from './HorizontalScrollArea.vue';
 import ProcessListItem from './ProcessListItem.vue';
 import ChannelListItem from './ChannelListItem.vue';
 import NormFactorListItem from './NormFactorListItem.vue';
 import { useWorkspaceStore } from '../stores/workspace';
-import CorrelationChart from './CorrelationChart.vue';
+import CorrelationChart from './charts/CorrelationChart.vue';
 
 const props = defineProps<{
   id: number;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import { useWorkspaceStore } from '../stores/workspace';
-import DownloadHelper from './DownloadHelper.vue';
+import { useWorkspaceStore } from '../../stores/workspace';
+import DownloadHelper from '../DownloadHelper.vue';
 
 const props = defineProps<{
   id: number;

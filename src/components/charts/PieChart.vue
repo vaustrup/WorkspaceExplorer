@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { IStackedProcess } from '../interfaces';
-import { useWorkspaceStore } from '../stores/workspace';
-import DownloadHelper from './DownloadHelper.vue';
-import useHighlighted from '../composables/useHighlighted';
+import type { IStackedProcess } from '../../interfaces';
+import { useWorkspaceStore } from '../../stores/workspace';
+import DownloadHelper from '../DownloadHelper.vue';
+import useHighlighted from '../../composables/useHighlighted';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
