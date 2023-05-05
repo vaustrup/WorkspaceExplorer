@@ -307,6 +307,9 @@ export const useWorkspaceStore = function (id: number) {
         }
         return types;
       },
+      number_of_processes(): number {
+        return this.normalized_stacked_data[0].processes.length;
+      },
     },
     actions: {
       load_workspace_from_local_file(file: File): void {

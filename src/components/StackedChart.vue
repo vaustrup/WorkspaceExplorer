@@ -271,37 +271,19 @@ function unhighlight(): void {
       </text>
       <circle
         :cx="bin_width * number_of_bins + 115 + 10"
-        :cy="
-          400 -
-          workspace_store.normalized_stacked_data[0].processes.length * 25 -
-          75
-        "
+        :cy="400 - workspace_store.number_of_processes * 25 - 75"
         r="5"
       />
       <line
         :x1="bin_width * number_of_bins + 115 + 10"
-        :y1="
-          400 -
-          workspace_store.normalized_stacked_data[0].processes.length * 25 -
-          75 +
-          10
-        "
+        :y1="400 - workspace_store.number_of_processes * 25 - 75 + 10"
         :x2="bin_width * number_of_bins + 115 + 10"
-        :y2="
-          400 -
-          workspace_store.normalized_stacked_data[0].processes.length * 25 -
-          75 -
-          10
-        "
+        :y2="400 - workspace_store.number_of_processes * 25 - 75 - 10"
         stroke="black"
       />
       <text
         :x="bin_width * number_of_bins + 145"
-        :y="
-          400 -
-          workspace_store.normalized_stacked_data[0].processes.length * 25 -
-          70
-        "
+        :y="400 - workspace_store.number_of_processes * 25 - 70"
       >
         data
       </text>
@@ -317,7 +299,7 @@ function unhighlight(): void {
           :x="bin_width * number_of_bins + 115"
           :y="
             400 -
-            workspace_store.normalized_stacked_data[0].processes.length * 25 +
+            workspace_store.number_of_processes * 25 +
             25 * process_index -
             50
           "
@@ -335,7 +317,7 @@ function unhighlight(): void {
           :x="bin_width * number_of_bins + 145"
           :y="
             400 -
-            workspace_store.normalized_stacked_data[0].processes.length * 25 +
+            workspace_store.number_of_processes * 25 +
             15 -
             50 +
             25 * process_index

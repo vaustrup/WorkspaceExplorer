@@ -22,10 +22,7 @@ const workspace_store = useWorkspaceStore(props.id)();
 // but it also has to be large enough to contain all legend entries
 const height = computed(() => {
   return String(
-    Math.max(
-      2 * 100,
-      25 * workspace_store.normalized_stacked_data[0].processes.length
-    ) + 150
+    Math.max(2 * 100, 25 * workspace_store.number_of_processes) + 150
   );
 });
 </script>

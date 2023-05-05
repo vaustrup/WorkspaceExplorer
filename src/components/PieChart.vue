@@ -80,10 +80,7 @@ function unhighlight(): void {
 // the height of the plot should be at least the diameter of the pie chart
 // but it also has to be large enough to contain all legend entries
 const height = computed(() => {
-  return Math.max(
-    2 * radius,
-    25 * workspace_store.normalized_stacked_data[0].processes.length
-  );
+  return Math.max(2 * radius, 25 * workspace_store.number_of_processes);
 });
 </script>
 

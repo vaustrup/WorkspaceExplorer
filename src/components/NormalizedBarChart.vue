@@ -69,7 +69,7 @@ function unhighlight(): void {
 const height = computed(() => {
   return Math.max(
     workspace_store.channel_names.length * 50 + 50,
-    workspace_store.normalized_stacked_data[0].processes.length * 25
+    workspace_store.number_of_processes * 25
   );
 });
 </script>
