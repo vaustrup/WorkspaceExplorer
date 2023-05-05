@@ -334,6 +334,16 @@ export const useWorkspaceStore = function (id: number) {
         reader.readAsText(file);
         this.loading = false;
       },
+      async load_workspace_from_url(url: string, name?: string): Promise<void> {
+        const response = await (await fetch(url)).json();
+        this.workspace = response;
+        if (name === undefined) {
+          this.name = url;
+        } else {
+          this.name = name;
+        }
+        this.loading = false;
+      },
       async load_workspace_from_HEPdata(analysis: IAnalysis): Promise<void> {
         const response = await (
           await fetch(
