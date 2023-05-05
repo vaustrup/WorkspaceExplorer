@@ -13,37 +13,30 @@ const props = defineProps<{
 
 const workspace_store = useWorkspaceStore(props.id)();
 
-const number_of_bins =
-  workspace_store.workspace.channels[props.channel_index].samples[0].data
-    .length;
+const channel = workspace_store.workspace.channels[props.channel_index];
+const channel_stacked_data =
+  workspace_store.stacked_data_per_bin[props.channel_index];
+
+const number_of_bins = channel.samples[0].data.length;
 
 const bins = Array.from({ length: number_of_bins }, (e, i) => i);
 
 const maximum = computed(() => {
   let max = 0;
-  for (
-    let i_bin = 0;
-    i_bin <
-    workspace_store.stacked_data_per_bin[props.channel_index].content.length;
-    i_bin++
-  ) {
+  for (let i_bin = 0; i_bin < channel_stacked_data.content.length; i_bin++) {
     if (
       max <
-      workspace_store.stacked_data_per_bin[props.channel_index].content[i_bin][
+      channel_stacked_data.content[i_bin][
         workspace_store.process_names.length - 1
       ].high
     ) {
       max =
-        workspace_store.stacked_data_per_bin[props.channel_index].content[
-          i_bin
-        ][workspace_store.process_names.length - 1].high;
+        channel_stacked_data.content[i_bin][
+          workspace_store.process_names.length - 1
+        ].high;
     }
-    if (
-      max <
-      workspace_store.stacked_data_per_bin[props.channel_index].data[i_bin]
-    ) {
-      max =
-        workspace_store.stacked_data_per_bin[props.channel_index].data[i_bin];
+    if (max < channel_stacked_data.data[i_bin]) {
+      max = channel_stacked_data.data[i_bin];
     }
   }
   return max;
@@ -172,18 +165,12 @@ function yaxis_path(): string {
             :y="
               350 -
               vertical_scale(0, maximum, 0, 300) *
-                workspace_store.stacked_data_per_bin[channel_index].content[
-                  bin
-                ][process_index].high
+                channel_stacked_data.content[bin][process_index].high
             "
             :height="
               vertical_scale(0, maximum, 0, 300) *
-              (workspace_store.stacked_data_per_bin[channel_index].content[bin][
-                process_index
-              ].high -
-                workspace_store.stacked_data_per_bin[channel_index].content[
-                  bin
-                ][process_index].low)
+              (channel_stacked_data.content[bin][process_index].high -
+                channel_stacked_data.content[bin][process_index].low)
             "
             :fill="workspace_store.colors[process_name]"
             :class="{
@@ -197,8 +184,7 @@ function yaxis_path(): string {
           :cx="bin_width * (bin + 0.5) + 100"
           :cy="
             350 -
-            vertical_scale(0, maximum, 0, 300) *
-              workspace_store.stacked_data_per_bin[channel_index].data[bin]
+            vertical_scale(0, maximum, 0, 300) * channel_stacked_data.data[bin]
           "
           r="5"
         />
@@ -207,17 +193,15 @@ function yaxis_path(): string {
           :y1="
             350 -
             vertical_scale(0, maximum, 0, 300) *
-              (workspace_store.stacked_data_per_bin[channel_index].data[bin] -
-                workspace_store.stacked_data_per_bin[channel_index].data[bin] **
-                  0.5)
+              (channel_stacked_data.data[bin] -
+                channel_stacked_data.data[bin] ** 0.5)
           "
           :x2="bin_width * (bin + 0.5) + 100"
           :y2="
             350 -
             vertical_scale(0, maximum, 0, 300) *
-              (workspace_store.stacked_data_per_bin[channel_index].data[bin] +
-                workspace_store.stacked_data_per_bin[channel_index].data[bin] **
-                  0.5)
+              (channel_stacked_data.data[bin] +
+                channel_stacked_data.data[bin] ** 0.5)
           "
           stroke="black"
         />
