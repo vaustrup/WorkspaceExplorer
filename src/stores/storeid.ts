@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import { useWorkspaceStore } from './workspace';
-import type { IAnalysis, IHEPdataentry } from '../interfaces';
+import { useWorkspaceStore } from 'src/stores/workspace';
+import type { IAnalysis, IHEPdataentry } from 'src/interfaces';
 import { Notify } from 'quasar';
 
 export const useStoreIDStore = defineStore('storeids', {

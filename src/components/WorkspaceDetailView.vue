@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import NormalizedBarChart from './charts/NormalizedBarChart.vue';
-import PieChart from './charts/PieChart.vue';
-import StackedChart from './charts/StackedChart.vue';
-import ModifierStructureChart from './charts/ModifierStructureChart.vue';
-import PullChart from './charts/PullChart.vue';
-import HorizontalScrollArea from './HorizontalScrollArea.vue';
-import ProcessListItem from './ProcessListItem.vue';
-import ChannelListItem from './ChannelListItem.vue';
-import NormFactorListItem from './NormFactorListItem.vue';
-import { useWorkspaceStore } from '../stores/workspace';
-import CorrelationChart from './charts/CorrelationChart.vue';
+import NormalizedBarChart from 'src/components/charts/NormalizedBarChart.vue';
+import PieChart from 'src/components/charts/PieChart.vue';
+import StackedChart from 'src/components/charts/StackedChart.vue';
+import ModifierStructureChart from 'src/components/charts/ModifierStructureChart.vue';
+import PullChart from 'src/components/charts/PullChart.vue';
+import HorizontalScrollArea from 'src/components/HorizontalScrollArea.vue';
+import ProcessListItem from 'src/components/ProcessListItem.vue';
+import ChannelListItem from 'src/components/ChannelListItem.vue';
+import NormFactorListItem from 'src/components/NormFactorListItem.vue';
+import { useWorkspaceStore } from 'src/stores/workspace';
+import CorrelationChart from 'src/components/charts/CorrelationChart.vue';
 
 const props = defineProps<{
   id: number;

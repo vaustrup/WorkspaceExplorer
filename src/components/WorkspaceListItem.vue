@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, nextTick } from 'vue';
 import { QPopupEdit } from 'quasar';
-import { useWorkspaceStore } from '../stores/workspace';
+import { useWorkspaceStore } from 'src/stores/workspace';
 
 const props = defineProps<{
   id: number;

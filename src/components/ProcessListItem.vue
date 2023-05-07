@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useWorkspaceStore } from '../stores/workspace';
+import { useWorkspaceStore } from 'src/stores/workspace';
 import { QPopupEdit } from 'quasar';
 import { ref, reactive, nextTick } from 'vue';
-import { color_scheme } from '../utils/colors';
+import { color_scheme } from 'src/utils/colors';
 
 const props = defineProps<{
   id: number;

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useWorkspaceStore } from '../../stores/workspace';
-import DownloadHelper from '../DownloadHelper.vue';
-import useHighlighted from '../../composables/useHighlighted';
-import { shorten_string } from '../../utils/strings';
+import { useWorkspaceStore } from 'src/stores/workspace';
+import DownloadHelper from 'src/components/DownloadHelper.vue';
+import useHighlighted from 'src/composables/useHighlighted';
+import { shorten_string } from 'src/utils/strings';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { useStoreIDStore } from './storeid';
+import { useStoreIDStore } from 'src/stores/storeid';
 import type {
   IAnalysis,
   IStackedChannel,

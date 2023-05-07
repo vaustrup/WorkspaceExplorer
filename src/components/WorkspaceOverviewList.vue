@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import WorkspaceDetailView from './WorkspaceDetailView.vue';
-import { useStoreIDStore } from '../stores/storeid';
+import WorkspaceDetailView from 'src/components/WorkspaceDetailView.vue';
+import { useStoreIDStore } from 'src/stores/storeid';
 
 const storeid_store = useStoreIDStore();
 </script>

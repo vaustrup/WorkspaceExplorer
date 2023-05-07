@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useStoreIDStore } from '../stores/storeid';
+import { useStoreIDStore } from 'src/stores/storeid';
 import { Notify, QFile, QPopupProxy } from 'quasar';
 import type { IAnalysis, IAnalysisOption } from 'src/interfaces';
 

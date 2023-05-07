@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useWorkspaceStore } from '../stores/workspace';
+import { useWorkspaceStore } from 'src/stores/workspace';
 import { QPopupEdit } from 'quasar';
 import { ref, reactive, nextTick } from 'vue';
 

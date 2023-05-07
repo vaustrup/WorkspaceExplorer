@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import { useWorkspaceStore } from '../../stores/workspace';
-import DownloadHelper from '../DownloadHelper.vue';
+import { useWorkspaceStore } from 'src/stores/workspace';
+import DownloadHelper from 'src/components/DownloadHelper.vue';
 import { shorten_string } from 'src/utils/strings';
 
 const props = defineProps<{
