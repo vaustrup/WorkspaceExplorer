@@ -4,6 +4,7 @@ import type { IStackedProcess } from '../../interfaces';
 import { useWorkspaceStore } from '../../stores/workspace';
 import DownloadHelper from '../DownloadHelper.vue';
 import useHighlighted from '../../composables/useHighlighted';
+import { shorten_string } from 'src/utils/strings';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -145,12 +146,7 @@ const height = computed(() => {
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"
         >
-          {{
-            workspace_store.process_titles[process.name].substring(0, 10) +
-            (workspace_store.process_titles[process.name].length > 10
-              ? '...'
-              : '')
-          }}
+          {{ shorten_string(workspace_store.process_titles[process.name], 10) }}
           <title>
             {{ workspace_store.process_titles[process.name] }}
           </title>

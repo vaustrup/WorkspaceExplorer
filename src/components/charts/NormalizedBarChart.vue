@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useWorkspaceStore } from '../../stores/workspace';
 import DownloadHelper from '../DownloadHelper.vue';
 import useHighlighted from '../../composables/useHighlighted';
+import { shorten_string } from 'src/utils/strings';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -127,12 +128,7 @@ const height = computed(() => {
           dominant-baseline="middle"
           text-anchor="end"
         >
-          {{
-            workspace_store.channel_titles[channel.name].substring(0, 25) +
-            (workspace_store.channel_titles[channel.name].length > 25
-              ? '...'
-              : '')
-          }}
+          {{ shorten_string(workspace_store.channel_titles[channel.name], 25) }}
           <title>
             {{ workspace_store.channel_titles[channel.name] }}
           </title>

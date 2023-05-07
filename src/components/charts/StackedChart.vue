@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useWorkspaceStore } from '../../stores/workspace';
 import DownloadHelper from '../DownloadHelper.vue';
 import useHighlighted from '../../composables/useHighlighted';
+import { shorten_string } from '../../utils/strings';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -51,6 +52,8 @@ function vertical_scale(
 ): number {
   return (target_max - target_min) / (input_max - input_min) + target_min;
 }
+
+const yscale = vertical_scale(0, maximum.value, 0, 300);
 
 const bin_width = computed(() => {
   const max_width = 1000;
@@ -164,11 +167,10 @@ function yaxis_path(): string {
             :width="bin_width"
             :y="
               350 -
-              vertical_scale(0, maximum, 0, 300) *
-                channel_stacked_data.content[bin][process_index].high
+              yscale * channel_stacked_data.content[bin][process_index].high
             "
             :height="
-              vertical_scale(0, maximum, 0, 300) *
+              yscale *
               (channel_stacked_data.content[bin][process_index].high -
                 channel_stacked_data.content[bin][process_index].low)
             "
@@ -182,24 +184,21 @@ function yaxis_path(): string {
         </template>
         <circle
           :cx="bin_width * (bin + 0.5) + 100"
-          :cy="
-            350 -
-            vertical_scale(0, maximum, 0, 300) * channel_stacked_data.data[bin]
-          "
+          :cy="350 - yscale * channel_stacked_data.data[bin]"
           r="5"
         />
         <line
           :x1="bin_width * (bin + 0.5) + 100"
           :y1="
             350 -
-            vertical_scale(0, maximum, 0, 300) *
+            yscale *
               (channel_stacked_data.data[bin] -
                 channel_stacked_data.data[bin] ** 0.5)
           "
           :x2="bin_width * (bin + 0.5) + 100"
           :y2="
             350 -
-            vertical_scale(0, maximum, 0, 300) *
+            yscale *
               (channel_stacked_data.data[bin] +
                 channel_stacked_data.data[bin] ** 0.5)
           "
@@ -299,12 +298,7 @@ function yaxis_path(): string {
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"
         >
-          {{
-            workspace_store.process_titles[process.name].substring(0, 18) +
-            (workspace_store.process_titles[process.name].length > 18
-              ? '...'
-              : '')
-          }}
+          {{ shorten_string(workspace_store.process_titles[process.name], 18) }}
           <title>
             {{ workspace_store.process_titles[process.name] }}
           </title>

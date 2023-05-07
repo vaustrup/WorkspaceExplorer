@@ -2,6 +2,7 @@
 import { computed, reactive } from 'vue';
 import { useWorkspaceStore } from '../../stores/workspace';
 import DownloadHelper from '../DownloadHelper.vue';
+import { shorten_string } from 'src/utils/strings';
 
 const props = defineProps<{
   id: number;
@@ -311,13 +312,10 @@ const width = computed(() => {
                     text-anchor="end"
                   >
                     {{
-                      workspace_store.process_titles[sample.name].substring(
-                        0,
+                      shorten_string(
+                        workspace_store.process_titles[sample.name],
                         18
-                      ) +
-                      (workspace_store.process_titles[sample.name].length > 18
-                        ? '...'
-                        : '')
+                      )
                     }}
                   </text>
                 </template>
@@ -367,13 +365,10 @@ const width = computed(() => {
                     }"
                   >
                     {{
-                      workspace_store.process_titles[sample.name].substring(
-                        0,
+                      shorten_string(
+                        workspace_store.process_titles[sample.name],
                         18
-                      ) +
-                      (workspace_store.process_titles[sample.name].length > 18
-                        ? '...'
-                        : '')
+                      )
                     }}
                     <title>
                       {{ workspace_store.process_titles[sample.name] }}
