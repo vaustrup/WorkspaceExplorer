@@ -28,9 +28,12 @@ import { onMounted } from 'vue';
 const store_id_store = useStoreIDStore();
 const route = useRoute();
 
-onMounted(() => {
+onMounted(async () => {
   if (route.query.id) {
-    store_id_store.check_workspaces_on_HEPdata(route.query.id as string);
+    const analyses = await store_id_store.check_workspaces_on_HEPdata(
+      route.query.id as string
+    );
+    store_id_store.load_workspaces_from_HEPdata(analyses);
   }
 });
 </script>
