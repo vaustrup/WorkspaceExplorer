@@ -36,7 +36,8 @@ const modifier_type_strings: { [key: string]: string } = {
 const modifier_type_names: string[] = Object.keys(colors);
 
 // plot style
-const size = 20;
+const half_size = 10;
+const size = 2 * half_size;
 const padding = 40;
 
 const plot_height = computed(() => {
@@ -50,20 +51,18 @@ const plot_height = computed(() => {
 });
 
 const label_offset = 10;
-const pixels_per_character = 8;
+
+function label_length(strings: string[]): number {
+  const pixels_per_character = 8;
+  return Math.max(...strings.map((el) => el.length)) * pixels_per_character;
+}
 
 const xlabel_length = computed(() => {
-  const length =
-    Math.max(...workspace_store.modifier_names.map((el) => el.length)) *
-    pixels_per_character;
-  return length;
+  return label_length(workspace_store.modifier_names);
 });
 
 const ylabel_length = computed(() => {
-  const length =
-    Math.max(...workspace_store.process_names.map((el) => el.length)) *
-    pixels_per_character;
-  return length;
+  return label_length(workspace_store.process_names);
 });
 
 const legend_height = computed(() => {
@@ -109,6 +108,28 @@ const state = reactive({
   channel_index: -999,
   sample_index: -999,
   modifier_index: -999,
+});
+
+const highlighted_channel = computed(() => {
+  return workspace_store.workspace.channels[state.channel_index];
+});
+
+const highlighted_sample = computed(() => {
+  return highlighted_channel.value.samples[state.sample_index];
+});
+
+const highlighted_modifier = computed(() => {
+  return workspace_store.modifier_names[state.modifier_index];
+});
+
+const highlighted_modifier_types = computed(() => {
+  return workspace_store.modifier_types[highlighted_channel.value.name][
+    highlighted_sample.value.name
+  ];
+});
+
+const highlighted_modifier_type = computed(() => {
+  return highlighted_modifier_types.value[highlighted_modifier.value];
 });
 
 function turn_on(): void {
@@ -180,7 +201,7 @@ const width = computed(() => {
                     ylabel_length +
                     2 * label_offset
                   "
-                  :y="0.5 * size"
+                  :y="half_size"
                   dominant-baseline="middle"
                   text-anchor="begin"
                 >
@@ -197,52 +218,38 @@ const width = computed(() => {
               :key="modifier_type_name"
             >
               <template v-if="modifier_type_name !== 'none'">
-                <rect
-                  v-if="state.channel_index !== -999"
-                  :fill="colors[modifier_type_name]"
-                  :height="size"
-                  :width="size"
-                  :x="modifier_type_index * 200 + ylabel_length + label_offset"
-                  y="0"
-                  :class="{
-                    isnothighlighted:
-                      workspace_store.modifier_types[
-                        workspace_store.workspace.channels[state.channel_index]
-                          .name
-                      ][
-                        workspace_store.workspace.channels[state.channel_index]
-                          .samples[state.sample_index].name
-                      ][
-                        workspace_store.modifier_names[state.modifier_index]
-                      ] !== modifier_type_name,
-                  }"
-                />
-                <text
-                  v-if="state.channel_index !== -999"
-                  :x="
-                    modifier_type_index * 200 +
-                    size +
-                    ylabel_length +
-                    2 * label_offset
-                  "
-                  :y="0.5 * size"
-                  dominant-baseline="middle"
-                  text-anchor="begin"
-                  :class="{
-                    isnothighlighted:
-                      workspace_store.modifier_types[
-                        workspace_store.workspace.channels[state.channel_index]
-                          .name
-                      ][
-                        workspace_store.workspace.channels[state.channel_index]
-                          .samples[state.sample_index].name
-                      ][
-                        workspace_store.modifier_names[state.modifier_index]
-                      ] !== modifier_type_name,
-                  }"
-                >
-                  {{ modifier_type_strings[modifier_type_name] }}
-                </text>
+                <template v-if="state.channel_index !== -999">
+                  <rect
+                    :fill="colors[modifier_type_name]"
+                    :height="size"
+                    :width="size"
+                    :x="
+                      modifier_type_index * 200 + ylabel_length + label_offset
+                    "
+                    y="0"
+                    :class="{
+                      isnothighlighted:
+                        highlighted_modifier_type !== modifier_type_name,
+                    }"
+                  />
+                  <text
+                    :x="
+                      modifier_type_index * 200 +
+                      size +
+                      ylabel_length +
+                      2 * label_offset
+                    "
+                    :y="half_size"
+                    dominant-baseline="middle"
+                    text-anchor="begin"
+                    :class="{
+                      isnothighlighted:
+                        highlighted_modifier_type !== modifier_type_name,
+                    }"
+                  >
+                    {{ modifier_type_strings[modifier_type_name] }}
+                  </text>
+                </template>
               </template>
             </template>
           </template>
@@ -307,7 +314,7 @@ const width = computed(() => {
                   />
                   <text
                     :x="ylabel_length"
-                    :y="y_pos[channel_index][sample_index] + 0.5 * size"
+                    :y="y_pos[channel_index][sample_index] + half_size"
                     dominant-baseline="middle"
                     text-anchor="end"
                   >
@@ -354,7 +361,7 @@ const width = computed(() => {
                   />
                   <text
                     :x="ylabel_length"
-                    :y="y_pos[channel_index][sample_index] + 0.5 * size"
+                    :y="y_pos[channel_index][sample_index] + half_size"
                     dominant-baseline="middle"
                     text-anchor="end"
                     :class="{
@@ -388,17 +395,7 @@ const width = computed(() => {
                 :height="size"
                 :x="x_pos[modifier_index]"
                 :y="y_pos[state.channel_index][state.sample_index]"
-                :fill="
-                  colors[
-                    workspace_store.modifier_types[
-                      workspace_store.workspace.channels[state.channel_index]
-                        .name
-                    ][
-                      workspace_store.workspace.channels[state.channel_index]
-                        .samples[state.sample_index].name
-                    ][modifier_name]
-                  ]
-                "
+                :fill="colors[highlighted_modifier_types[modifier_name]]"
                 fill-opacity="0.5"
                 @mouseenter="
                   highlight(
@@ -423,12 +420,9 @@ const width = computed(() => {
                   :y="y_pos[channel_index][sample_index]"
                   :fill="
                     colors[
-                      workspace_store.modifier_types[
-                        workspace_store.workspace.channels[channel_index].name
-                      ][
-                        workspace_store.workspace.channels[channel_index]
-                          .samples[sample_index].name
-                      ][workspace_store.modifier_names[state.modifier_index]]
+                      workspace_store.modifier_types[channel.name][
+                        channel.samples[sample_index].name
+                      ][highlighted_modifier]
                     ]
                   "
                   fill-opacity="0.5"
@@ -444,40 +438,18 @@ const width = computed(() => {
                 :x="x_pos[state.modifier_index]"
                 :y="y_pos[state.channel_index][state.sample_index]"
                 stroke="black"
-                :fill="
-                  colors[
-                    workspace_store.modifier_types[
-                      workspace_store.workspace.channels[state.channel_index]
-                        .name
-                    ][
-                      workspace_store.workspace.channels[state.channel_index]
-                        .samples[state.sample_index].name
-                    ][workspace_store.modifier_names[state.modifier_index]]
-                  ]
-                "
+                :fill="colors[highlighted_modifier_type]"
               >
                 <title>
                   {{
                     'Channel: ' +
-                    workspace_store.workspace.channels[state.channel_index]
-                      .name +
+                    highlighted_channel.name +
                     '\nSample: ' +
-                    workspace_store.process_titles[
-                      workspace_store.workspace.channels[state.channel_index]
-                        .samples[state.sample_index].name
-                    ] +
+                    workspace_store.process_titles[highlighted_sample.name] +
                     '\nModifier: ' +
-                    workspace_store.modifier_names[state.modifier_index] +
+                    highlighted_modifier +
                     '\nType: ' +
-                    modifier_type_strings[
-                      workspace_store.modifier_types[
-                        workspace_store.workspace.channels[state.channel_index]
-                          .name
-                      ][
-                        workspace_store.workspace.channels[state.channel_index]
-                          .samples[state.sample_index].name
-                      ][workspace_store.modifier_names[state.modifier_index]]
-                    ]
+                    modifier_type_strings[highlighted_modifier_type]
                   }}
                 </title>
               </rect>
@@ -490,7 +462,7 @@ const width = computed(() => {
             ) in workspace_store.modifier_names"
             :key="modifier_name"
             :x="-plot_height - label_offset"
-            :y="x_pos[modifier_index] + 0.5 * size"
+            :y="x_pos[modifier_index] + half_size"
             transform="rotate(-90)"
             dominant-baseline="middle"
             text-anchor="end"
