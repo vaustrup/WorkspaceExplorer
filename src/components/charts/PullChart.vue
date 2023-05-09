@@ -20,9 +20,11 @@ const height = computed(() => {
 });
 
 const sigma_width = 125;
+const two_sigma_width = 2 * sigma_width;
+const four_sigma_width = 4 * sigma_width;
 const ylabel_width = 250;
 const ylabel_offset = 10;
-const width = 4 * sigma_width + ylabel_width + 2 * ylabel_offset;
+const width = four_sigma_width + ylabel_width + 2 * ylabel_offset;
 const tick_length = 5;
 
 function xaxis_path(): string {
@@ -43,6 +45,10 @@ function xaxis_path(): string {
   }
   return path;
 }
+
+function round_to_n_digits(value: number, n: number): number {
+  return Math.round(value * 10 ** n) / 10 ** n;
+}
 </script>
 
 <template>
@@ -56,19 +62,19 @@ function xaxis_path(): string {
       <g transform="translate(250, 10)">
         <rect
           :x="ylabel_offset"
-          :width="4 * sigma_width"
+          :width="four_sigma_width"
           :height="height - 100"
           fill="yellow"
         />
         <rect
           :x="sigma_width + ylabel_offset"
-          :width="2 * sigma_width"
+          :width="two_sigma_width"
           :height="height - 100"
           fill="green"
         />
         <line
-          :x1="2 * sigma_width + ylabel_offset"
-          :x2="2 * sigma_width + ylabel_offset"
+          :x1="two_sigma_width + ylabel_offset"
+          :x2="two_sigma_width + ylabel_offset"
           y1="0"
           :y2="height - 100"
           stroke="black"
@@ -91,7 +97,7 @@ function xaxis_path(): string {
           </text>
           <circle
             :cx="
-              2 * sigma_width +
+              two_sigma_width +
               workspace_store.fitresults.bestfit[np_index] * sigma_width +
               ylabel_offset
             "
@@ -104,7 +110,7 @@ function xaxis_path(): string {
           />
           <line
             :x1="
-              2 * sigma_width +
+              two_sigma_width +
               Math.max(
                 workspace_store.fitresults.bestfit[np_index] -
                   workspace_store.fitresults.uncertainty[np_index],
@@ -114,7 +120,7 @@ function xaxis_path(): string {
               ylabel_offset
             "
             :x2="
-              2 * sigma_width +
+              two_sigma_width +
               Math.min(
                 workspace_store.fitresults.bestfit[np_index] +
                   workspace_store.fitresults.uncertainty[np_index],
@@ -149,15 +155,15 @@ function xaxis_path(): string {
                 'NP' +
                 np +
                 ': ' +
-                Math.round(
-                  workspace_store.fitresults.bestfit[np_index] * 1000
-                ) /
-                  1000 +
+                round_to_n_digits(
+                  workspace_store.fitresults.bestfit[np_index],
+                  3
+                ) +
                 ' &#177; ' +
-                Math.round(
-                  workspace_store.fitresults.uncertainty[np_index] * 1000
-                ) /
-                  1000
+                round_to_n_digits(
+                  workspace_store.fitresults.uncertainty[np_index] * 1000,
+                  3
+                )
               }}
             </title>
           </rect>
@@ -173,7 +179,7 @@ function xaxis_path(): string {
           {{ (i_tick - 5) / 2 }}
         </text>
         <text
-          :x="ylabel_offset + 2 * sigma_width"
+          :x="ylabel_offset + two_sigma_width"
           :y="height - 60"
           text-anchor="middle"
         >
