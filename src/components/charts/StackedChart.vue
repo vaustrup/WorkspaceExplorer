@@ -15,6 +15,7 @@ const props = defineProps<{
 const workspace_store = useWorkspaceStore(props.id)();
 
 const channel = workspace_store.workspace.channels[props.channel_index];
+const channel_name = workspace_store.channel_names[props.channel_index];
 const channel_stacked_data =
   workspace_store.stacked_data_per_bin[props.channel_index];
 
@@ -25,19 +26,16 @@ const bins = Array.from({ length: number_of_bins }, (e, i) => i);
 const maximum = computed(() => {
   let max = 0;
   for (let i_bin = 0; i_bin < channel_stacked_data.content.length; i_bin++) {
-    if (
-      max <
+    const high_value =
       channel_stacked_data.content[i_bin][
         workspace_store.process_names.length - 1
-      ].high
-    ) {
-      max =
-        channel_stacked_data.content[i_bin][
-          workspace_store.process_names.length - 1
-        ].high;
+      ].high;
+    if (max < high_value) {
+      max = high_value;
     }
-    if (max < channel_stacked_data.data[i_bin]) {
-      max = channel_stacked_data.data[i_bin];
+    const data_value = channel_stacked_data.data[i_bin];
+    if (max < data_value) {
+      max = data_value;
     }
   }
   return max;
@@ -58,74 +56,77 @@ const yscale = vertical_scale(0, maximum.value, 0, 300);
 const bin_width = computed(() => {
   const max_width = 1000;
   const min_width = 250;
-  let bin_width = 25;
-  let total_width = Math.max(min_width, bin_width * number_of_bins); // plot should have a width of at least 250px
+  const width_per_bin = 25;
+  let total_width = Math.max(min_width, width_per_bin * number_of_bins); // plot should have a width of at least 250px
   total_width = Math.min(total_width, max_width); // plot should have a width of at most 1000px
   return total_width / number_of_bins;
 });
 
 const tick_length = 5;
 
-function xaxis_path(): string {
+const xaxis_path = computed(() => {
   let path = 'M100,350H' + (bin_width.value * number_of_bins + 100);
   for (let i_bin = 0; i_bin <= number_of_bins; i_bin++) {
     path += 'M' + (100 + i_bin * bin_width.value) + ',350';
     path += 'V' + (350 + tick_length);
   }
   return path;
-}
+});
 
-function number_of_zeroes(): number {
+const number_of_zeroes = computed(() => {
   return Math.floor(Math.log10(maximum.value));
-}
+});
 
-function maximum_normalised(): number {
+const maximum_normalised = computed(() => {
   // returns the highest value in any of the bins divided by the next smaller power of ten
-  return maximum.value / 10 ** number_of_zeroes();
-}
+  return maximum.value / 10 ** number_of_zeroes.value;
+});
 
-function y_ticks(): number[] {
-  let ticks = [];
+const y_ticks = computed(() => {
   // if maximum is between 1 and 5 10^n: set a tick for each m*e^n
   // if maximum is between 5 and 9 10^n: set a tick for every second m*e^n
-  const max = maximum_normalised();
+  const max = maximum_normalised.value;
   if (max > 8) {
-    ticks = [0, 2, 4, 6, 8];
-  } else if (max > 6) {
-    ticks = [0, 2, 4, 6];
-  } else if (max > 5) {
-    ticks = [0, 1, 2, 3, 4, 5];
-  } else if (max > 4) {
-    ticks = [0, 1, 2, 3, 4];
-  } else if (max > 3) {
-    ticks = [0, 1, 2, 3];
-  } else if (max > 2) {
-    ticks = [0, 0.5, 1, 1.5, 2];
-  } else if (max > 1.5) {
-    ticks = [0, 0.5, 1, 1.5];
-  } else {
-    ticks = [0, 0.5, 1];
+    return [0, 2, 4, 6, 8];
   }
-  return ticks;
-}
+  if (max > 6) {
+    return [0, 2, 4, 6];
+  }
+  if (max > 5) {
+    return [0, 1, 2, 3, 4, 5];
+  }
+  if (max > 4) {
+    return [0, 1, 2, 3, 4];
+  }
+  if (max > 3) {
+    return [0, 1, 2, 3];
+  }
+  if (max > 2) {
+    return [0, 0.5, 1, 1.5, 2];
+  }
+  if (max > 1.5) {
+    return [0, 0.5, 1, 1.5];
+  }
+  return [0, 0.5, 1];
+});
 
-function y_tick_positions(): number[] {
-  const max = maximum_normalised();
+const y_tick_positions = computed(() => {
+  const max = maximum_normalised.value;
   let tick_positions = [];
-  for (const tick of y_ticks()) {
+  for (const tick of y_ticks.value) {
     tick_positions.push(350 - (300 / max) * tick);
   }
   return tick_positions;
-}
+});
 
-function yaxis_path(): string {
+const yaxis_path = computed(() => {
   let path = 'M100,350V40';
-  for (const tick_position of y_tick_positions()) {
+  for (const tick_position of y_tick_positions.value) {
     path += 'M100,' + tick_position;
     path += 'H' + (100 - tick_length);
   }
   return path;
-}
+});
 </script>
 
 <template>
@@ -136,26 +137,14 @@ function yaxis_path(): string {
         (200 + bin_width * number_of_bins) +
         'px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
       "
-      :title="
-        workspace_store.channel_titles[
-          workspace_store.channel_names[channel_index]
-        ]
-      "
+      :title="workspace_store.channel_titles[channel_name]"
     >
-      {{
-        workspace_store.channel_titles[
-          workspace_store.channel_names[channel_index]
-        ]
-      }}
+      {{ workspace_store.channel_titles[channel_name] }}
     </h3>
     <svg
       height="400"
       :width="bin_width * number_of_bins + 300"
-      :id="
-        'svg_stackedchart' +
-        workspace_store.name +
-        workspace_store.channel_names[channel_index]
-      "
+      :id="'svg_stackedchart' + workspace_store.name + channel_name"
     >
       <template v-for="bin in bins" :key="bin">
         <template
@@ -205,7 +194,7 @@ function yaxis_path(): string {
           stroke="black"
         />
       </template>
-      <path fill="none" stroke="#000" :d="xaxis_path()"></path>
+      <path fill="none" stroke="#000" :d="xaxis_path"></path>
       <text
         v-for="bin in bins"
         :key="bin"
@@ -217,12 +206,12 @@ function yaxis_path(): string {
       >
         bin {{ bin + 1 }}
       </text>
-      <path fill="none" stroke="#000" :d="yaxis_path()"></path>
+      <path fill="none" stroke="#000" :d="yaxis_path"></path>
       <text
-        v-for="(tick_label, tick_index) in y_ticks()"
+        v-for="(tick_label, tick_index) in y_ticks"
         :key="tick_label"
         x="90"
-        :y="y_tick_positions()[tick_index]"
+        :y="y_tick_positions[tick_index]"
         dominant-baseline="middle"
         text-anchor="end"
       >
@@ -230,7 +219,7 @@ function yaxis_path(): string {
       </text>
       <text x="95" y="35" dominant-baseline="middle" text-anchor="end">
         <tspan dy="-0px">x10</tspan>
-        <tspan dy="-8px">{{ number_of_zeroes() }}</tspan>
+        <tspan dy="-8px">{{ number_of_zeroes }}</tspan>
       </text>
       <text
         x="-175"
@@ -306,11 +295,7 @@ function yaxis_path(): string {
       </template>
     </svg>
     <DownloadHelper
-      :svg_id="
-        'stackedchart' +
-        workspace_store.name +
-        workspace_store.channel_names[channel_index]
-      "
+      :svg_id="'stackedchart' + workspace_store.name + channel_name"
       :id="id"
     />
   </div>
