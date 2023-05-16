@@ -4,6 +4,7 @@ import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
 import { shorten_string } from 'src/utils/strings';
+import { linear_scale } from 'src/utils/plots';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -12,16 +13,6 @@ const props = defineProps<{
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
-
-// method to scale width and position in x to a given range
-function horizontal_scale(
-  input_min: number,
-  input_max: number,
-  target_min: number,
-  target_max: number
-): number {
-  return (target_max - target_min) / (input_max - input_min) + target_min;
-}
 
 // define plot style
 const tick_length = 5;
@@ -90,7 +81,7 @@ const height = computed(() => {
             :key="'process' + process_index.toString()"
             :height="bar_height"
             :width="
-              horizontal_scale(
+              linear_scale(
                 channel.processes[0].low,
                 channel.processes[channel.processes.length - 1].high,
                 0,
@@ -99,7 +90,7 @@ const height = computed(() => {
               (process.high - process.low)
             "
             :x="
-              horizontal_scale(
+              linear_scale(
                 channel.processes[0].low,
                 channel.processes[channel.processes.length - 1].high,
                 0,
@@ -143,7 +134,7 @@ const height = computed(() => {
             padding +
             x_label_offset
           "
-          :x="(tick - 1) * 20 * horizontal_scale(0, 100, 0, x_range)"
+          :x="(tick - 1) * 20 * linear_scale(0, 100, 0, x_range)"
           dominant-baseline="middle"
           text-anchor="middle"
         >
@@ -156,7 +147,7 @@ const height = computed(() => {
             padding +
             x_title_offset
           "
-          :x="50 * horizontal_scale(0, 100, 0, x_range)"
+          :x="50 * linear_scale(0, 100, 0, x_range)"
           dominant-baseline="middle"
           text-anchor="middle"
         >

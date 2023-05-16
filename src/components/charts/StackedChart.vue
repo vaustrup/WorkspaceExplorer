@@ -4,6 +4,7 @@ import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
 import { shorten_string } from 'src/utils/strings';
+import { linear_scale } from 'src/utils/plots';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -41,17 +42,7 @@ const maximum = computed(() => {
   return max;
 });
 
-// method to scale height and position in y to a given range
-function vertical_scale(
-  input_min: number,
-  input_max: number,
-  target_min: number,
-  target_max: number
-): number {
-  return (target_max - target_min) / (input_max - input_min) + target_min;
-}
-
-const yscale = vertical_scale(0, maximum.value, 0, 300);
+const yscale = linear_scale(0, maximum.value, 0, 300);
 
 const bin_width = computed(() => {
   const max_width = 1000;
