@@ -4,7 +4,7 @@ import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
 import { shorten_string } from 'src/utils/strings';
-import { linear_scale } from 'src/utils/plots';
+import { linear_scale, axis_path } from 'src/utils/plots';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -15,7 +15,6 @@ const props = defineProps<{
 const workspace_store = useWorkspaceStore(props.id)();
 
 // define plot style
-const tick_length = 5;
 const bar_height = 35;
 const padding = 5;
 const number_of_ticks = 6;
@@ -29,24 +28,19 @@ const offset =
   padding;
 
 // create strings for path of axes
-function yaxis_path(): string {
-  let path = 'M0,0V' + offset;
-  for (let i = 1; i <= workspace_store.normalized_stacked_data.length; i++) {
-    path += 'M0,' + ((i - 0.5) * bar_height + i * padding);
-    path += 'H-' + tick_length;
-  }
+const y_ticks = [
+  ...Array(workspace_store.normalized_stacked_data.length)
+    .fill(0)
+    .map((_, i) => (i + 0.5) * bar_height + (i + 1) * padding),
+];
+const yaxis_path = axis_path(0, 0, offset, y_ticks, false, true);
 
-  return path;
-}
-
-function xaxis_path(): string {
-  let path = 'M0,' + offset + 'H' + x_range;
-  for (let i = 0; i < number_of_ticks; i++) {
-    path += 'M' + i * (x_range / (number_of_ticks - 1)) + ',' + offset;
-    path += 'V' + (offset + tick_length);
-  }
-  return path;
-}
+const x_ticks = [
+  ...Array(number_of_ticks)
+    .fill(0)
+    .map((_, i) => i * (x_range / (number_of_ticks - 1))),
+];
+const xaxis_path = axis_path(0, offset, x_range, x_ticks, true, true);
 
 // the height of the plot should be at least the height of the bars corresponding to the different channels
 // but it also has to be large enough to contain all legend entries
@@ -106,7 +100,7 @@ const height = computed(() => {
             @mouseleave="unhighlight"
           />
         </template>
-        <path fill="none" stroke="#000" :d="yaxis_path()"></path>
+        <path fill="none" stroke="#000" :d="yaxis_path"></path>
         <text
           v-for="(
             channel, channel_index
@@ -124,7 +118,7 @@ const height = computed(() => {
             {{ workspace_store.channel_titles[channel.name] }}
           </title>
         </text>
-        <path fill="none" stroke="#000" :d="xaxis_path()"></path>
+        <path fill="none" stroke="#000" :d="xaxis_path"></path>
         <text
           v-for="tick in number_of_ticks"
           :key="tick"

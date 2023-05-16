@@ -6,3 +6,27 @@ export function linear_scale(
 ): number {
   return (target_max - target_min) / (input_max - input_min) + target_min;
 }
+
+export function axis_path(
+  x_offset: number,
+  y_offset: number,
+  range: number,
+  tick_positions: number[],
+  is_horizontal: boolean,
+  is_left_or_bottom: boolean
+): string {
+  const tick_length = 5;
+  let path =
+    'M' + x_offset + ',' + y_offset + (is_horizontal ? 'H' : 'V') + range;
+  for (const position of tick_positions) {
+    path +=
+      'M' +
+      (x_offset + (is_horizontal ? position : 0)) +
+      ',' +
+      (y_offset + (is_horizontal ? 0 : position));
+    path += is_horizontal
+      ? 'V' + (y_offset + (is_left_or_bottom ? 1 : -1) * tick_length)
+      : 'H' + (x_offset + (is_left_or_bottom ? -1 : 1) * tick_length);
+  }
+  return path;
+}

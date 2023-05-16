@@ -4,7 +4,7 @@ import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
 import { shorten_string } from 'src/utils/strings';
-import { linear_scale } from 'src/utils/plots';
+import { linear_scale, axis_path } from 'src/utils/plots';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -53,16 +53,19 @@ const bin_width = computed(() => {
   return total_width / number_of_bins;
 });
 
-const tick_length = 5;
-
-const xaxis_path = computed(() => {
-  let path = 'M100,350H' + (bin_width.value * number_of_bins + 100);
-  for (let i_bin = 0; i_bin <= number_of_bins; i_bin++) {
-    path += 'M' + (100 + i_bin * bin_width.value) + ',350';
-    path += 'V' + (350 + tick_length);
-  }
-  return path;
-});
+const x_ticks = [
+  ...Array(number_of_bins + 1)
+    .fill(0)
+    .map((_, i) => i * bin_width.value),
+];
+const xaxis_path = axis_path(
+  100,
+  350,
+  bin_width.value * number_of_bins + 100,
+  x_ticks,
+  true,
+  true
+);
 
 const number_of_zeroes = computed(() => {
   return Math.floor(Math.log10(maximum.value));
@@ -105,19 +108,12 @@ const y_tick_positions = computed(() => {
   const max = maximum_normalised.value;
   let tick_positions = [];
   for (const tick of y_ticks.value) {
-    tick_positions.push(350 - (300 / max) * tick);
+    tick_positions.push(-(300 / max) * tick);
   }
   return tick_positions;
 });
 
-const yaxis_path = computed(() => {
-  let path = 'M100,350V40';
-  for (const tick_position of y_tick_positions.value) {
-    path += 'M100,' + tick_position;
-    path += 'H' + (100 - tick_length);
-  }
-  return path;
-});
+const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
 </script>
 
 <template>
@@ -202,7 +198,7 @@ const yaxis_path = computed(() => {
         v-for="(tick_label, tick_index) in y_ticks"
         :key="tick_label"
         x="90"
-        :y="y_tick_positions[tick_index]"
+        :y="350 + y_tick_positions[tick_index]"
         dominant-baseline="middle"
         text-anchor="end"
       >

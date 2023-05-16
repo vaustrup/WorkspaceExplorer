@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
+import { axis_path } from 'src/utils/plots';
 
 const { highlight, unhighlight, ishighlighted, highlighted_index } =
   useHighlighted();
@@ -25,26 +26,21 @@ const four_sigma_width = 4 * sigma_width;
 const ylabel_width = 250;
 const ylabel_offset = 10;
 const width = four_sigma_width + ylabel_width + 2 * ylabel_offset;
-const tick_length = 5;
 
-function xaxis_path(): string {
-  let path =
-    'M' +
-    ylabel_offset +
-    ',' +
-    (height.value - 100) +
-    'H' +
-    (4 * sigma_width + ylabel_offset);
-  for (let i_tick = 0; i_tick <= 8; i_tick++) {
-    path +=
-      'M' +
-      (ylabel_offset + (i_tick * sigma_width) / 2) +
-      ',' +
-      (height.value - 100);
-    path += 'V' + (height.value - 100 + tick_length);
-  }
-  return path;
-}
+const number_of_ticks = 9;
+const x_ticks = [
+  ...Array(number_of_ticks)
+    .fill(0)
+    .map((_, i) => (i * sigma_width) / 2),
+];
+const xaxis_path = axis_path(
+  ylabel_offset,
+  height.value - 100,
+  4 * sigma_width + ylabel_offset,
+  x_ticks,
+  true,
+  true
+);
 
 function round_to_n_digits(value: number, n: number): number {
   return Math.round(value * 10 ** n) / 10 ** n;
@@ -168,7 +164,7 @@ function round_to_n_digits(value: number, n: number): number {
             </title>
           </rect>
         </template>
-        <path fill="none" stroke="black" :d="xaxis_path()"></path>
+        <path fill="none" stroke="black" :d="xaxis_path"></path>
         <text
           v-for="i_tick in 9"
           :key="'tick' + i_tick"

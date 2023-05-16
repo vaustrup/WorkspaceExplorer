@@ -2,6 +2,7 @@
 import { reactive, computed } from 'vue';
 import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
+import { axis_path } from 'src/utils/plots';
 
 const props = defineProps<{
   id: number;
@@ -93,23 +94,21 @@ function get_opacity(np1_index: number, np2_index: number): number {
   return Math.abs(get_correlation(np1_index, np2_index));
 }
 
-const tick_length = 5;
 const ztick = [1.0, 0.75, 0.5, 0.25, 0.0, -0.25, -0.5, -0.75, -1.0];
 const z_height = height - label_size - 2 * label_offset;
-
-function zaxis_path(): string {
-  const x =
-    label_size + label_offset * 3 + correlated_nps.value.length * size + size;
-  const y = 0;
-
-  let path = 'M' + x + ',' + y + 'V' + z_height;
-  for (let tick = 0; tick < ztick.length; tick++) {
-    const tick_position = (z_height / (ztick.length - 1)) * tick;
-    path += 'M' + x + ',' + tick_position;
-    path += 'H' + (x + tick_length);
-  }
-  return path;
-}
+const z_ticks = [
+  ...Array(ztick.length)
+    .fill(0)
+    .map((_, i) => i * (z_height / (ztick.length - 1))),
+];
+const zaxis_path = axis_path(
+  label_size + label_offset * 3 + correlated_nps.value.length * size + size,
+  0,
+  z_height,
+  z_ticks,
+  false,
+  false
+);
 </script>
 
 <template>
@@ -204,7 +203,7 @@ function zaxis_path(): string {
           :height="correlated_nps.length * size"
           fill="url(#gradient)"
         />
-        <path fill="none" stroke="#000" :d="zaxis_path()"></path>
+        <path fill="none" stroke="#000" :d="zaxis_path"></path>
         <text
           v-for="(tick, index) of ztick"
           :key="'ztick' + tick"
