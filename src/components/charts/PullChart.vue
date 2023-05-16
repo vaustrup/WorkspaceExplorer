@@ -3,7 +3,8 @@ import { computed } from 'vue';
 import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
-import { axis_path } from 'src/utils/plots';
+import { axis_path, round_to_n_digits } from 'src/utils/plots';
+import PullChartEntry from 'src/components/charts/PullChartEntry.vue';
 
 const { highlight, unhighlight, ishighlighted, highlighted_index } =
   useHighlighted();
@@ -41,10 +42,6 @@ const xaxis_path = axis_path(
   true,
   true
 );
-
-function round_to_n_digits(value: number, n: number): number {
-  return Math.round(value * 10 ** n) / 10 ** n;
-}
 </script>
 
 <template>
@@ -80,57 +77,14 @@ function round_to_n_digits(value: number, n: number): number {
           v-for="(np, np_index) in workspace_store.fitresults.labels"
           :key="np"
         >
-          <text
+          <PullChartEntry
             :y="np_index * height_per_entry + height_per_entry / 2"
-            x="0"
-            text-anchor="end"
-            dominant-baseline="middle"
-            :class="{
-              isnothighlighted: !ishighlighted(np_index),
-            }"
-          >
-            {{ np }}
-          </text>
-          <circle
-            :cx="
-              two_sigma_width +
-              workspace_store.fitresults.bestfit[np_index] * sigma_width +
-              ylabel_offset
-            "
-            :cy="np_index * height_per_entry + height_per_entry / 2"
-            fill="black"
-            r="5"
-            :class="{
-              isnothighlighted: !ishighlighted(np_index),
-            }"
-          />
-          <line
-            :x1="
-              two_sigma_width +
-              Math.max(
-                workspace_store.fitresults.bestfit[np_index] -
-                  workspace_store.fitresults.uncertainty[np_index],
-                -2
-              ) *
-                sigma_width +
-              ylabel_offset
-            "
-            :x2="
-              two_sigma_width +
-              Math.min(
-                workspace_store.fitresults.bestfit[np_index] +
-                  workspace_store.fitresults.uncertainty[np_index],
-                2
-              ) *
-                sigma_width +
-              ylabel_offset
-            "
-            :y1="np_index * height_per_entry + height_per_entry / 2"
-            :y2="np_index * height_per_entry + height_per_entry / 2"
-            stroke="black"
-            :class="{
-              isnothighlighted: !ishighlighted(np_index),
-            }"
+            :x_offset="two_sigma_width + ylabel_offset"
+            :sigma_width="sigma_width"
+            :np_name="np"
+            :bestfit="workspace_store.fitresults.bestfit[np_index]"
+            :uncertainty="workspace_store.fitresults.uncertainty[np_index]"
+            :isnothighlighted="!ishighlighted(np_index)"
           />
           <rect
             :x="-ylabel_width"
@@ -166,7 +120,7 @@ function round_to_n_digits(value: number, n: number): number {
         </template>
         <path fill="none" stroke="black" :d="xaxis_path"></path>
         <text
-          v-for="i_tick in 9"
+          v-for="i_tick in number_of_ticks"
           :key="'tick' + i_tick"
           :x="ylabel_offset + ((i_tick - 1) * sigma_width) / 2"
           :y="height - 80"

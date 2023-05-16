@@ -30,3 +30,7 @@ export function axis_path(
   }
   return path;
 }
+
+export function round_to_n_digits(value: number, n: number): number {
+  return Math.round(value * 10 ** n) / 10 ** n;
+}
