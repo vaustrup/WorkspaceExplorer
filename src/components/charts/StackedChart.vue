@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
-import { shorten_string } from 'src/utils/strings';
 import { linear_scale, axis_path } from 'src/utils/plots';
+import LegendEntry from 'src/components/charts/LegendEntry.vue';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -217,6 +217,7 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
       >
         Number of events per bin
       </text>
+      <!-- legend, data needs a separate entry -->
       <circle
         :cx="bin_width * number_of_bins + 115 + 10"
         :cy="400 - workspace_store.number_of_processes * 25 - 75"
@@ -235,51 +236,24 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
       >
         data
       </text>
-      <template
+      <LegendEntry
         v-for="(process, process_index) in workspace_store
           .normalized_stacked_data[0].processes"
         :key="process.name"
-      >
-        <rect
-          height="20"
-          width="20"
-          :fill="workspace_store.colors[process.name]"
-          :x="bin_width * number_of_bins + 115"
-          :y="
-            400 -
-            workspace_store.number_of_processes * 25 +
-            25 * process_index -
-            50
-          "
-          :id="process.name"
-          :class="{
-            isnothighlighted: !ishighlighted(process_index),
-          }"
-          @mouseover="highlight(process_index)"
-          @mouseleave="unhighlight"
-        />
-        <text
-          :x="bin_width * number_of_bins + 145"
-          :y="
-            400 -
-            workspace_store.number_of_processes * 25 +
-            15 -
-            50 +
-            25 * process_index
-          "
-          :id="process.name"
-          :class="{
-            isnothighlighted: !ishighlighted(process_index),
-          }"
-          @mouseover="highlight(process_index)"
-          @mouseleave="unhighlight"
-        >
-          {{ shorten_string(workspace_store.process_titles[process.name], 18) }}
-          <title>
-            {{ workspace_store.process_titles[process.name] }}
-          </title>
-        </text>
-      </template>
+        :size="20"
+        :color="workspace_store.colors[process.name]"
+        :x="bin_width * number_of_bins + 115"
+        :y="
+          400 -
+          workspace_store.number_of_processes * 25 +
+          25 * process_index -
+          50
+        "
+        :isnothighlighted="!ishighlighted(process_index)"
+        :title="workspace_store.process_titles[process.name]"
+        @mouseover="highlight(process_index)"
+        @mouseleave="unhighlight"
+      />
     </svg>
     <DownloadHelper
       :svg_id="'stackedchart' + workspace_store.name + channel_name"

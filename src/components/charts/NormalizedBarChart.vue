@@ -5,6 +5,7 @@ import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
 import { shorten_string } from 'src/utils/strings';
 import { linear_scale, axis_path } from 'src/utils/plots';
+import LegendEntry from 'src/components/charts/LegendEntry.vue';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -147,45 +148,19 @@ const height = computed(() => {
         >
           Relative Contributions in %
         </text>
-        <template
+        <LegendEntry
           v-for="(process, process_index) in workspace_store
             .normalized_stacked_data[0].processes"
           :key="process.name"
-        >
-          <rect
-            height="20"
-            width="20"
-            :fill="workspace_store.colors[process.name]"
-            :x="x_range + 50"
-            :y="25 * process_index"
-            :id="process.name"
-            :class="{
-              isnothighlighted: !ishighlighted(process_index),
-            }"
-            @mouseover="highlight(process_index)"
-            @mouseleave="unhighlight"
-          />
-          <text
-            :x="x_range + 80"
-            :y="15 + 25 * process_index"
-            :id="process.name"
-            :class="{
-              isnothighlighted: !ishighlighted(process_index),
-            }"
-            @mouseover="highlight(process_index)"
-            @mouseleave="unhighlight"
-          >
-            {{
-              workspace_store.process_titles[process.name].substring(0, 18) +
-              (workspace_store.process_titles[process.name].length > 18
-                ? '...'
-                : '')
-            }}
-            <title>
-              {{ workspace_store.process_titles[process.name] }}
-            </title>
-          </text>
-        </template>
+          :size="20"
+          :color="workspace_store.colors[process.name]"
+          :x="x_range + 50"
+          :y="25 * process_index"
+          :isnothighlighted="!ishighlighted(process_index)"
+          :title="workspace_store.process_titles[process.name]"
+          @mouseover="highlight(process_index)"
+          @mouseleave="unhighlight"
+        />
       </g>
     </svg>
   </div>

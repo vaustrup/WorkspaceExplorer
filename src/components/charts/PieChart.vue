@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { IStackedProcess } from 'src/interfaces';
 import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
-import { shorten_string } from 'src/utils/strings';
+import PieChartEntry from 'src/components/charts/PieChartEntry.vue';
+import LegendEntry from 'src/components/charts/LegendEntry.vue';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -14,58 +14,6 @@ const props = defineProps<{
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
-
-function pie_chart_path(process: IStackedProcess): string {
-  return describe_arc(
-    radius,
-    radius,
-    radius,
-    process.low * 3.6,
-    process.high * 3.6
-  );
-}
-
-function describe_arc(
-  x: number,
-  y: number,
-  r: number,
-  start_angle: number,
-  end_angle: number
-): string {
-  const start = polar_to_cartesian(x, y, r, end_angle);
-  const end = polar_to_cartesian(x, y, r, start_angle);
-  const large_arc_flag = end_angle - start_angle <= 180 ? '0' : '1';
-  const d = [
-    'M',
-    r,
-    r,
-    'L',
-    start.x,
-    start.y,
-    'A',
-    r,
-    r,
-    0,
-    large_arc_flag,
-    0,
-    end.x,
-    end.y,
-  ].join(' ');
-  return d;
-}
-
-function polar_to_cartesian(
-  centerX: number,
-  centerY: number,
-  radius: number,
-  angle_in_degrees: number
-) {
-  const angle_in_radians = ((angle_in_degrees - 90) * Math.PI) / 180.0;
-  return {
-    x: centerX + radius * Math.cos(angle_in_radians),
-    y: centerY + radius * Math.sin(angle_in_radians),
-  };
-}
 
 // plotting style
 const radius = 100;
@@ -106,52 +54,30 @@ const height = computed(() => {
         workspace_store.channel_names[channel_index]
       "
     >
-      <path
+      <PieChartEntry
         v-for="(process, process_index) in workspace_store
           .normalized_stacked_data[channel_index].processes"
         :key="process.name"
-        :d="pie_chart_path(process)"
-        :fill="workspace_store.colors[process.name]"
-        :class="{
-          isnothighlighted: !ishighlighted(process_index),
-        }"
+        :process="process"
+        :radius="radius"
+        :color="workspace_store.colors[process.name]"
+        :isnothighlighted="!ishighlighted(process_index)"
         @mouseover="highlight(process_index)"
         @mouseleave="unhighlight"
       />
-      <template
+      <LegendEntry
         v-for="(process, process_index) in workspace_store
           .normalized_stacked_data[0].processes"
         :key="process.name"
-      >
-        <rect
-          height="20"
-          width="20"
-          :fill="workspace_store.colors[process.name]"
-          :x="2 * radius + 50"
-          :y="25 * process_index"
-          :id="process.name"
-          :class="{
-            isnothighlighted: !ishighlighted(process_index),
-          }"
-          @mouseover="highlight(process_index)"
-          @mouseleave="unhighlight"
-        />
-        <text
-          :x="2 * radius + 80"
-          :y="15 + 25 * process_index"
-          :id="process.name"
-          :class="{
-            isnothighlighted: !ishighlighted(process_index),
-          }"
-          @mouseover="highlight(process_index)"
-          @mouseleave="unhighlight"
-        >
-          {{ shorten_string(workspace_store.process_titles[process.name], 10) }}
-          <title>
-            {{ workspace_store.process_titles[process.name] }}
-          </title>
-        </text>
-      </template>
+        :size="20"
+        :color="workspace_store.colors[process.name]"
+        :x="2 * radius + 50"
+        :y="25 * process_index"
+        :isnothighlighted="!ishighlighted(process_index)"
+        :title="workspace_store.process_titles[process.name]"
+        @mouseover="highlight(process_index)"
+        @mouseleave="unhighlight"
+      />
     </svg>
     <DownloadHelper
       :svg_id="
