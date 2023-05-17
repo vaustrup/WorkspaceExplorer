@@ -5,6 +5,7 @@ import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
 import { linear_scale, axis_path } from 'src/utils/plots';
 import LegendEntry from 'src/components/charts/LegendEntry.vue';
+import YAxisLabel from 'src/components/charts/YAxisLabel.vue';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -77,31 +78,23 @@ const maximum_normalised = computed(() => {
 });
 
 const y_ticks = computed(() => {
-  // if maximum is between 1 and 5 10^n: set a tick for each m*e^n
+  // if maximum is between 1 and 2 10^n: set a tick for each 0.5m*e^n
+  // if maximum is between 2 and 5 10^n: set a tick for each m*e^n
   // if maximum is between 5 and 9 10^n: set a tick for every second m*e^n
   const max = maximum_normalised.value;
-  if (max > 8) {
-    return [0, 2, 4, 6, 8];
+  let stepsize = 0.5;
+  if (max >= 6) {
+    stepsize = 2;
+  } else if (max >= 3) {
+    stepsize = 1;
   }
-  if (max > 6) {
-    return [0, 2, 4, 6];
+  let i = 0;
+  const ticks = [];
+  while (i <= max) {
+    ticks.push(i);
+    i += stepsize;
   }
-  if (max > 5) {
-    return [0, 1, 2, 3, 4, 5];
-  }
-  if (max > 4) {
-    return [0, 1, 2, 3, 4];
-  }
-  if (max > 3) {
-    return [0, 1, 2, 3];
-  }
-  if (max > 2) {
-    return [0, 0.5, 1, 1.5, 2];
-  }
-  if (max > 1.5) {
-    return [0, 0.5, 1, 1.5];
-  }
-  return [0, 0.5, 1];
+  return ticks;
 });
 
 const y_tick_positions = computed(() => {
@@ -208,15 +201,7 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
         <tspan dy="-0px">x10</tspan>
         <tspan dy="-8px">{{ number_of_zeroes }}</tspan>
       </text>
-      <text
-        x="-175"
-        y="50"
-        transform="rotate(-90)"
-        dominant-baseline="middle"
-        text-anchor="middle"
-      >
-        Number of events per bin
-      </text>
+      <YAxisLabel :x="-175" :y="50">Number of events per bin</YAxisLabel>
       <!-- legend, data needs a separate entry -->
       <circle
         :cx="bin_width * number_of_bins + 115 + 10"

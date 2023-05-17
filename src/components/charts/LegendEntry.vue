@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { shorten_string } from 'src/utils/strings';
-const props = defineProps<{
+defineProps<{
   size: number;
   color: string;
   x: number;

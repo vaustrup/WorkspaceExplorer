@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   np_name: string;
   y: number;
   x_offset: number;

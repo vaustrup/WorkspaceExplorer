@@ -5,6 +5,7 @@ import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
 import { axis_path, round_to_n_digits } from 'src/utils/plots';
 import PullChartEntry from 'src/components/charts/PullChartEntry.vue';
+import XAxisLabel from 'src/components/charts/XAxisLabel.vue';
 
 const { highlight, unhighlight, ishighlighted, highlighted_index } =
   useHighlighted();
@@ -86,6 +87,7 @@ const xaxis_path = axis_path(
             :uncertainty="workspace_store.fitresults.uncertainty[np_index]"
             :isnothighlighted="!ishighlighted(np_index)"
           />
+          <!-- transparent rectangle on top of each NP to highlight on mouseover -->
           <rect
             :x="-ylabel_width"
             :y="np_index * height_per_entry"
@@ -128,13 +130,9 @@ const xaxis_path = axis_path(
         >
           {{ (i_tick - 5) / 2 }}
         </text>
-        <text
-          :x="ylabel_offset + two_sigma_width"
-          :y="height - 60"
-          text-anchor="middle"
-        >
+        <XAxisLabel :x="ylabel_offset + two_sigma_width" :y="height - 60">
           (&#920;&#770; - &#920;)/&#916;&#920;
-        </text>
+        </XAxisLabel>
       </g>
     </svg>
   </div>

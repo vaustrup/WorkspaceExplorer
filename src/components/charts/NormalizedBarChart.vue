@@ -6,6 +6,7 @@ import useHighlighted from 'src/composables/useHighlighted';
 import { shorten_string } from 'src/utils/strings';
 import { linear_scale, axis_path } from 'src/utils/plots';
 import LegendEntry from 'src/components/charts/LegendEntry.vue';
+import XAxisLabel from './XAxisLabel.vue';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -135,7 +136,7 @@ const height = computed(() => {
         >
           {{ (tick - 1) * 20 }}
         </text>
-        <text
+        <XAxisLabel
           :y="
             (bar_height + padding) *
               workspace_store.normalized_stacked_data.length +
@@ -143,11 +144,9 @@ const height = computed(() => {
             x_title_offset
           "
           :x="50 * linear_scale(0, 100, 0, x_range)"
-          dominant-baseline="middle"
-          text-anchor="middle"
         >
           Relative Contributions in %
-        </text>
+        </XAxisLabel>
         <LegendEntry
           v-for="(process, process_index) in workspace_store
             .normalized_stacked_data[0].processes"
