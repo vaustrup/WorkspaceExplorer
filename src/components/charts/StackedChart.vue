@@ -6,6 +6,7 @@ import useHighlighted from 'src/composables/useHighlighted';
 import { linear_scale, axis_path } from 'src/utils/plots';
 import LegendEntry from 'src/components/charts/LegendEntry.vue';
 import YAxisLabel from 'src/components/charts/YAxisLabel.vue';
+import DataPoint from 'src/components/charts/DataPoint.vue';
 
 const { highlight, unhighlight, ishighlighted } = useHighlighted();
 
@@ -151,27 +152,10 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
             @mouseleave="unhighlight"
           />
         </template>
-        <circle
-          :cx="bin_width * (bin + 0.5) + 100"
-          :cy="350 - yscale * channel_stacked_data.data[bin]"
-          r="5"
-        />
-        <line
-          :x1="bin_width * (bin + 0.5) + 100"
-          :y1="
-            350 -
-            yscale *
-              (channel_stacked_data.data[bin] -
-                channel_stacked_data.data[bin] ** 0.5)
-          "
-          :x2="bin_width * (bin + 0.5) + 100"
-          :y2="
-            350 -
-            yscale *
-              (channel_stacked_data.data[bin] +
-                channel_stacked_data.data[bin] ** 0.5)
-          "
-          stroke="black"
+        <DataPoint
+          :x="bin_width * (bin + 0.5) + 100"
+          :nominal="350 - yscale * channel_stacked_data.data[bin]"
+          :uncertainty="yscale * channel_stacked_data.data[bin] ** 0.5"
         />
       </template>
       <path fill="none" stroke="#000" :d="xaxis_path"></path>
@@ -203,17 +187,10 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
       </text>
       <YAxisLabel :x="-175" :y="50">Number of events per bin</YAxisLabel>
       <!-- legend, data needs a separate entry -->
-      <circle
-        :cx="bin_width * number_of_bins + 115 + 10"
-        :cy="400 - workspace_store.number_of_processes * 25 - 75"
-        r="5"
-      />
-      <line
-        :x1="bin_width * number_of_bins + 115 + 10"
-        :y1="400 - workspace_store.number_of_processes * 25 - 75 + 10"
-        :x2="bin_width * number_of_bins + 115 + 10"
-        :y2="400 - workspace_store.number_of_processes * 25 - 75 - 10"
-        stroke="black"
+      <DataPoint
+        :x="bin_width * number_of_bins + 115 + 10"
+        :nominal="400 - workspace_store.number_of_processes * 25 - 75"
+        :uncertainty="10"
       />
       <text
         :x="bin_width * number_of_bins + 145"
