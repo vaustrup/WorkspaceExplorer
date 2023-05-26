@@ -71,31 +71,19 @@ const legend_height = computed(() => {
 
 // pre-compute positions of rects
 const x_pos = computed(() => {
-  const positions: number[] = [];
-  for (
-    let modifier_index = 0;
-    modifier_index < workspace_store.modifier_names.length;
-    modifier_index++
-  ) {
-    positions.push(modifier_index * size + ylabel_length.value + label_offset);
-  }
-  return positions;
+  // return list of x-positions for the modifiers
+  return workspace_store.modifier_names.map(
+    (_, index) => index * size + ylabel_length.value + label_offset
+  );
 });
 
 const y_pos = computed(() => {
   const positions: number[][] = [];
   let channel_offset = 0;
   for (const channel of workspace_store.workspace.channels) {
-    const position_per_sample = [];
-    for (
-      let sample_index = 0;
-      sample_index < channel.samples.length;
-      sample_index++
-    ) {
-      position_per_sample.push(
-        sample_index * size + channel_offset + legend_height.value
-      );
-    }
+    const position_per_sample = channel.samples.map(
+      (_, index) => index * size + channel_offset + legend_height.value
+    );
     positions.push(position_per_sample);
     channel_offset += channel.samples.length * size + padding;
   }
