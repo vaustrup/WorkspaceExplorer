@@ -68,21 +68,15 @@ export const useWorkspaceStore = function (id: number) {
               (pv: number, cv: number) => pv + cv,
               0
             );
-            if (Object.prototype.hasOwnProperty.call(process_yields, p.name)) {
-              process_yields[p.name] += yields;
-            } else {
-              process_yields[p.name] = yields;
-            }
+            // set initial yields to zero if key does not exist yet
+            process_yields[p.name] = (process_yields[p.name] || 0) + yields;
           }
         }
         return process_yields;
       },
       channel_names(state): string[] {
-        const list: string[] = [];
-        for (const channel of state.workspace.channels) {
-          list.push(channel.name);
-        }
-        return list;
+        // return list of channel names
+        return state.workspace.channels.map((a) => a.name);
       },
       channel_titles(state): { [key: string]: string } {
         const channel_titles: { [key: string]: string } = {};
