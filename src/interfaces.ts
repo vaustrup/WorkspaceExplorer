@@ -69,6 +69,29 @@ export interface IChannel {
   samples: Array<IProcess>;
 }
 
+export interface IChannelState {
+  name: string;
+  samples: Array<IProcess>;
+  _title: string;
+  observations: number[];
+  workspace_store: IWorkspaceState & IWorkspaceGetters;
+}
+
+export interface IChannelGetters {
+  stacked_data: IStackedChannel;
+  normalized_stacked_data: IStackedChannel;
+  stacked_data_per_bin: IStackedChannelBinwise;
+  yield_of_process: (process_name: string, postfit: boolean) => number;
+  title: string;
+  modifier_names: string[];
+  modifier_types: { [key: string]: { [key: string]: string } };
+  normfactor_names: string[];
+}
+
+export interface IChannelActions {
+  cleanup: () => void;
+}
+
 export interface IMeasurement {
   name: string;
   config: IConfig;
@@ -97,6 +120,32 @@ export interface IWorkspace {
   channels: Array<IChannel>;
   measurements: Array<IMeasurement>;
   observations: Array<IObservation>;
+}
+
+export interface IWorkspaceState {
+  workspace: IWorkspace;
+  name: string;
+  process_title_index: { [key: string]: string };
+  channel_title_index: { [key: string]: string };
+  process_color_index: { [key: string]: string };
+  download_urls: { [key: string]: string };
+  loading: boolean;
+  fitresults: IFitResults;
+  fitted: boolean;
+  fitting: boolean;
+  nps: IFitResults;
+  result_id: string;
+  channels: (IChannelState & IChannelGetters & IChannelActions)[];
+}
+
+export interface IWorkspaceGetters {
+  process_names: string[];
+  modifier_names: string[];
+  normfactors: { [key: string]: INormFactor };
+}
+
+export interface IWorkspaceActions {
+  delete_workspace: void;
 }
 
 export interface IStackedProcess {
@@ -135,7 +184,6 @@ export interface INormFactor {
   name: string;
   fixed: boolean;
   value: number;
-  processes: string[];
 }
 
 export interface IUncertaintyPerSystematic {

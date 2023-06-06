@@ -26,12 +26,11 @@ const y_label_offset = 10;
 const x_title_offset = 30;
 
 const offset =
-  (bar_height + padding) * workspace_store.normalized_stacked_data.length +
-  padding;
+  (bar_height + padding) * workspace_store.channels.length + padding;
 
 // create strings for path of axes
 const y_ticks = [
-  ...Array(workspace_store.normalized_stacked_data.length)
+  ...Array(workspace_store.channels.length)
     .fill(0)
     .map((_, i) => (i + 0.5) * bar_height + (i + 1) * padding),
 ];
@@ -48,7 +47,7 @@ const xaxis_path = axis_path(0, offset, x_range, x_ticks, true, true);
 // but it also has to be large enough to contain all legend entries
 const height = computed(() => {
   return Math.max(
-    workspace_store.channel_names.length * 50 + 50,
+    workspace_store.channels.length * 50 + 50,
     workspace_store.number_of_processes * 25
   );
 });
@@ -67,19 +66,20 @@ const height = computed(() => {
     >
       <g transform="translate(250, 10)">
         <template
-          v-for="(
-            channel, channel_index
-          ) in workspace_store.normalized_stacked_data"
+          v-for="(channel, channel_index) in workspace_store.channels"
           :key="'channel' + channel_index.toString"
         >
           <rect
-            v-for="(process, process_index) in channel.processes"
+            v-for="(process, process_index) in channel.normalized_stacked_data
+              .processes"
             :key="'process' + process_index.toString()"
             :height="bar_height"
             :width="
               linear_scale(
-                channel.processes[0].low,
-                channel.processes[channel.processes.length - 1].high,
+                channel.normalized_stacked_data.processes[0].low,
+                channel.normalized_stacked_data.processes[
+                  workspace_store.number_of_processes - 1
+                ].high,
                 0,
                 x_range
               ) *
@@ -87,8 +87,10 @@ const height = computed(() => {
             "
             :x="
               linear_scale(
-                channel.processes[0].low,
-                channel.processes[channel.processes.length - 1].high,
+                channel.normalized_stacked_data.processes[0].low,
+                channel.normalized_stacked_data.processes[
+                  workspace_store.number_of_processes - 1
+                ].high,
                 0,
                 x_range
               ) * process.low
@@ -104,9 +106,7 @@ const height = computed(() => {
         </template>
         <path fill="none" stroke="#000" :d="yaxis_path"></path>
         <text
-          v-for="(
-            channel, channel_index
-          ) in workspace_store.normalized_stacked_data"
+          v-for="(channel, channel_index) in workspace_store.channels"
           :key="channel.name"
           :x="-y_label_offset"
           :y="
@@ -115,9 +115,9 @@ const height = computed(() => {
           dominant-baseline="middle"
           text-anchor="end"
         >
-          {{ shorten_string(workspace_store.channel_titles[channel.name], 25) }}
+          {{ shorten_string(channel.title, 25) }}
           <title>
-            {{ workspace_store.channel_titles[channel.name] }}
+            {{ channel.title }}
           </title>
         </text>
         <path fill="none" stroke="#000" :d="xaxis_path"></path>
@@ -125,8 +125,7 @@ const height = computed(() => {
           v-for="tick in number_of_ticks"
           :key="tick"
           :y="
-            (bar_height + padding) *
-              workspace_store.normalized_stacked_data.length +
+            (bar_height + padding) * workspace_store.channels.length +
             padding +
             x_label_offset
           "
@@ -138,8 +137,7 @@ const height = computed(() => {
         </text>
         <XAxisLabel
           :y="
-            (bar_height + padding) *
-              workspace_store.normalized_stacked_data.length +
+            (bar_height + padding) * workspace_store.channels.length +
             padding +
             x_title_offset
           "
@@ -148,15 +146,14 @@ const height = computed(() => {
           Relative Contributions in %
         </XAxisLabel>
         <LegendEntry
-          v-for="(process, process_index) in workspace_store
-            .normalized_stacked_data[0].processes"
-          :key="process.name"
+          v-for="(process, process_index) in workspace_store.process_names"
+          :key="process"
           :size="20"
-          :color="workspace_store.colors[process.name]"
+          :color="workspace_store.colors[process]"
           :x="x_range + 50"
           :y="25 * process_index"
           :isnothighlighted="!ishighlighted(process_index)"
-          :title="workspace_store.process_titles[process.name]"
+          :title="workspace_store.process_titles[process]"
           @mouseover="highlight(process_index)"
           @mouseleave="unhighlight"
         />

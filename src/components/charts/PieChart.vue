@@ -15,6 +15,8 @@ const props = defineProps<{
 
 const workspace_store = useWorkspaceStore(props.id)();
 
+const channel = workspace_store.channels[props.channel_index];
+
 // plotting style
 const radius = 100;
 
@@ -33,30 +35,18 @@ const height = computed(() => {
         3 * radius +
         'px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
       "
-      :title="
-        workspace_store.channel_titles[
-          workspace_store.channel_names[channel_index]
-        ]
-      "
+      :title="channel.title"
     >
-      {{
-        workspace_store.channel_titles[
-          workspace_store.channel_names[channel_index]
-        ]
-      }}
+      {{ channel.title }}
     </h3>
     <svg
       :width="4 * radius"
       :height="height"
-      :id="
-        'svg_piechart' +
-        workspace_store.name +
-        workspace_store.channel_names[channel_index]
-      "
+      :id="'svg_piechart' + workspace_store.name + channel.name"
     >
       <PieChartEntry
-        v-for="(process, process_index) in workspace_store
-          .normalized_stacked_data[channel_index].processes"
+        v-for="(process, process_index) in channel.normalized_stacked_data
+          .processes"
         :key="process.name"
         :process="process"
         :radius="radius"
@@ -66,8 +56,8 @@ const height = computed(() => {
         @mouseleave="unhighlight"
       />
       <LegendEntry
-        v-for="(process, process_index) in workspace_store
-          .normalized_stacked_data[0].processes"
+        v-for="(process, process_index) in channel.normalized_stacked_data
+          .processes"
         :key="process.name"
         :size="20"
         :color="workspace_store.colors[process.name]"
@@ -80,11 +70,7 @@ const height = computed(() => {
       />
     </svg>
     <DownloadHelper
-      :svg_id="
-        'piechart' +
-        workspace_store.name +
-        workspace_store.channel_names[channel_index]
-      "
+      :svg_id="'piechart' + workspace_store.name + channel.name"
       :id="id"
     />
   </div>

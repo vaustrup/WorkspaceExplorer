@@ -66,10 +66,10 @@ const height = computed(() => {
               style="margin-top: 1em; margin-bottom: 1em"
             >
               <ChannelListItem
-                v-for="channel_name in workspace_store.channel_names"
-                :key="channel_name.toString"
+                v-for="(channel, channel_id) in workspace_store.channels"
+                :key="channel.name"
                 :id="id"
-                :channel_name="channel_name"
+                :channel_id="channel_id"
               />
             </q-list>
           </div>
@@ -102,9 +102,7 @@ const height = computed(() => {
         <q-expansion-item switch-toggle-side label="Pie Charts">
           <HorizontalScrollArea :height="height">
             <PieChart
-              v-for="(
-                channel, channel_index
-              ) in workspace_store.normalized_stacked_data"
+              v-for="(channel, channel_index) in workspace_store.channels"
               :key="channel.name"
               :id="id"
               :channel_index="channel_index"
@@ -115,9 +113,7 @@ const height = computed(() => {
         <q-expansion-item switch-toggle-side label="Data-MC Comparisons">
           <HorizontalScrollArea height="550">
             <StackedChart
-              v-for="(
-                channel, channel_index
-              ) in workspace_store.stacked_data_per_bin"
+              v-for="(channel, channel_index) in workspace_store.channels"
               :key="channel.name"
               :id="id"
               :channel_index="channel_index"
@@ -147,9 +143,7 @@ const height = computed(() => {
             <h3>{{ modifier_name }}</h3>
             <div class="row">
               <SystematicChart
-                v-for="(
-                  channel, channel_index
-                ) in workspace_store.stacked_data_per_bin"
+                v-for="(channel, channel_index) in workspace_store.channels"
                 :key="channel.name"
                 :id="id"
                 :channel_index="channel_index"
@@ -172,9 +166,7 @@ const height = computed(() => {
             <PullChart :id="id" />
             <div>
               <StackedChart
-                v-for="(
-                  channel, channel_index
-                ) in workspace_store.stacked_data_per_bin_postfit"
+                v-for="(channel, channel_index) in workspace_store.channels"
                 :key="channel.name"
                 :id="id"
                 :channel_index="channel_index"

@@ -19,6 +19,7 @@ const props = defineProps<{
 const workspace_store = useWorkspaceStore(props.id)();
 
 const name = 'stackedchart' + (props.postfit ? 'postfit' : 'prefit');
+const channel = workspace_store.channels[props.channel_index];
 
 const number_of_bins =
   workspace_store.workspace.channels[props.channel_index].samples[0].data
@@ -28,12 +29,8 @@ const bins = Array.from({ length: number_of_bins }, (e, i) => i);
 
 const stacked_data = computed(() => {
   return props.postfit
-    ? workspace_store.stacked_data_per_bin_postfit[props.channel_index]
-    : workspace_store.stacked_data_per_bin[props.channel_index];
-});
-
-const channel_name = computed(() => {
-  return workspace_store.channel_names[props.channel_index];
+    ? channel.stacked_data_per_bin
+    : channel.stacked_data_per_bin;
 });
 
 const maximum = computed(() => {
@@ -128,14 +125,14 @@ const yaxis_path = computed(() => {
         (200 + bin_width * number_of_bins) +
         'px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
       "
-      :title="workspace_store.channel_titles[channel_name]"
+      :title="channel.title"
     >
-      {{ workspace_store.channel_titles[channel_name] }}
+      {{ channel.title }}
     </h3>
     <svg
       height="400"
       :width="bin_width * number_of_bins + 300"
-      :id="'svg_' + name + workspace_store.name + channel_name"
+      :id="'svg_' + name + workspace_store.name + channel.name"
     >
       <template v-for="bin in bins" :key="bin">
         <template
@@ -206,11 +203,10 @@ const yaxis_path = computed(() => {
         data
       </text>
       <LegendEntry
-        v-for="(process, process_index) in workspace_store
-          .normalized_stacked_data[0].processes"
-        :key="process.name"
+        v-for="(process, process_index) in workspace_store.process_names"
+        :key="process"
         :size="20"
-        :color="workspace_store.colors[process.name]"
+        :color="workspace_store.colors[process]"
         :x="bin_width * number_of_bins + 115"
         :y="
           400 -
@@ -219,13 +215,13 @@ const yaxis_path = computed(() => {
           50
         "
         :isnothighlighted="!ishighlighted(process_index)"
-        :title="workspace_store.process_titles[process.name]"
+        :title="workspace_store.process_titles[process]"
         @mouseover="highlight(process_index)"
         @mouseleave="unhighlight"
       />
     </svg>
     <DownloadHelper
-      :svg_id="name + workspace_store.name + channel_name"
+      :svg_id="name + workspace_store.name + channel.name"
       :id="id"
     />
   </div>
