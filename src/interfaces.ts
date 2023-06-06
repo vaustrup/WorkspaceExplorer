@@ -81,6 +81,7 @@ export interface IChannelGetters {
   stacked_data: IStackedChannel;
   normalized_stacked_data: IStackedChannel;
   stacked_data_per_bin: IStackedChannelBinwise;
+  stacked_data_per_bin_postfit: IStackedChannelBinwise;
   yield_of_process: (process_name: string, postfit: boolean) => number;
   title: string;
   modifier_names: string[];

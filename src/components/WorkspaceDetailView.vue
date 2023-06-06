@@ -129,7 +129,7 @@ const height = computed(() => {
           />
         </q-expansion-item>
         <q-separator inset></q-separator>
-        <q-expansion-item
+        <!-- <q-expansion-item
           switch-toggle-side
           label="Systematic Uncertainty Chart"
         >
@@ -151,7 +151,7 @@ const height = computed(() => {
               />
             </div>
           </div>
-        </q-expansion-item>
+        </q-expansion-item> -->
         <q-separator inset></q-separator>
         <q-expansion-item switch-toggle-side label="Fit Results">
           <q-btn

@@ -110,13 +110,13 @@ export const useChannelStore = function (id: number, channel: string) {
             if (!postfit) {
               factor = factor * normfactor.value;
             } else {
-              const np_index: number = state.workspace_store.fitresults
-                ? state.workspace_store.fitresults.labels.indexOf(key)
+              const np_index: number = state.workspace_store.nps
+                ? state.workspace_store.nps.labels.indexOf(key)
                 : -1;
               factor =
                 factor *
-                (state.workspace_store.fitresults
-                  ? state.workspace_store.fitresults.bestfit[np_index]
+                (state.workspace_store.nps
+                  ? state.workspace_store.nps.bestfit[np_index]
                   : 1);
             }
           }
@@ -194,6 +194,38 @@ export const useChannelStore = function (id: number, channel: string) {
               process.high =
                 previous_high +
                 sample.data[i_bin] * this.normfactor(sample, false);
+            }
+            processes.push(process);
+            previous_high = process.high;
+          }
+          channel.content.push(processes);
+        }
+        return channel;
+      },
+      stacked_data_per_bin_postfit(): IStackedChannelBinwise {
+        const channel = {} as IStackedChannelBinwise;
+        channel.name = this.name;
+        channel.data = this.observations;
+        channel.content = [];
+        const bin_number = this.samples[0].data.length;
+        for (let i_bin = 0; i_bin < bin_number; i_bin++) {
+          const processes = [] as IStackedProcess[];
+          let previous_high = 0;
+          for (const process_name of this.workspace_store.process_names) {
+            const process = {} as IStackedProcess;
+            process.name = process_name;
+            process.low = previous_high;
+            // find process_index from name in samples
+            const sample = this.samples.find((s) => {
+              return s.name === process_name;
+            });
+            // in case a process is not available in this channel, set yields to zero
+            if (!sample) {
+              process.high = previous_high;
+            } else {
+              process.high =
+                previous_high +
+                sample.data[i_bin] * this.normfactor(sample, true);
             }
             processes.push(process);
             previous_high = process.high;

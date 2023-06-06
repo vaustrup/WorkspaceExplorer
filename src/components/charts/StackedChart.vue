@@ -21,15 +21,13 @@ const workspace_store = useWorkspaceStore(props.id)();
 const name = 'stackedchart' + (props.postfit ? 'postfit' : 'prefit');
 const channel = workspace_store.channels[props.channel_index];
 
-const number_of_bins =
-  workspace_store.workspace.channels[props.channel_index].samples[0].data
-    .length;
+const number_of_bins = channel.samples[0].data.length;
 
 const bins = Array.from({ length: number_of_bins }, (e, i) => i);
 
 const stacked_data = computed(() => {
   return props.postfit
-    ? channel.stacked_data_per_bin
+    ? channel.stacked_data_per_bin_postfit
     : channel.stacked_data_per_bin;
 });
 
