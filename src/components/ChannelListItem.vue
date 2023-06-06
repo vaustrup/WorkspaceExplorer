@@ -5,7 +5,7 @@ import { ref, reactive, nextTick } from 'vue';
 
 const props = defineProps<{
   id: number;
-  channel_name: string;
+  channel_id: number;
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
@@ -36,13 +36,13 @@ async function update_download_buttons(): Promise<void> {
 
 <template>
   <q-item>
-    <q-item-section :title="workspace_store.channel_titles[channel_name]">
+    <q-item-section :title="workspace_store.channels[channel_id].title">
       <q-item-label lines="1">
-        {{ workspace_store.channel_titles[channel_name] }}
+        {{ workspace_store.channels[channel_id].title }}
         <q-popup-edit
           :disable="state.popup_disabled"
           ref="popup"
-          v-model="workspace_store.channel_title_index[channel_name]"
+          v-model="workspace_store.channels[channel_id]._title"
           auto-save
           v-slot="scope"
           @hide="

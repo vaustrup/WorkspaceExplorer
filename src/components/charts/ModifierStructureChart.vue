@@ -42,9 +42,8 @@ const padding = 40;
 
 const plot_height = computed(() => {
   let height =
-    (workspace_store.workspace.channels.length - 1) * padding +
-    legend_height.value;
-  for (const channel of workspace_store.workspace.channels) {
+    (workspace_store.channels.length - 1) * padding + legend_height.value;
+  for (const channel of workspace_store.channels) {
     height += channel.samples.length * size;
   }
   return height;
@@ -80,7 +79,7 @@ const x_pos = computed(() => {
 const y_pos = computed(() => {
   const positions: number[][] = [];
   let channel_offset = 0;
-  for (const channel of workspace_store.workspace.channels) {
+  for (const channel of workspace_store.channels) {
     const position_per_sample = channel.samples.map(
       (_, index) => index * size + channel_offset + legend_height.value
     );
@@ -99,7 +98,7 @@ const state = reactive({
 });
 
 const highlighted_channel = computed(() => {
-  return workspace_store.workspace.channels[state.channel_index];
+  return workspace_store.channels[state.channel_index];
 });
 
 const highlighted_sample = computed(() => {
@@ -111,7 +110,7 @@ const highlighted_modifier = computed(() => {
 });
 
 const highlighted_modifier_types = computed(() => {
-  return workspace_store.modifier_types[highlighted_channel.value.name][
+  return highlighted_channel.value.modifier_types[
     highlighted_sample.value.name
   ];
 });
@@ -268,15 +267,14 @@ const width = computed(() => {
                     state.highlight_mode,
                 }"
               >
-                {{ workspace_store.channel_titles[channel.name] }}
+                {{ workspace_store.channels[channel_index].title }}
               </text>
             </template>
             <!-- to avoid unnecessary rerendering, the structure is duplicated: once in case the mouse is over the chart area and once when it is outside -->
             <!-- highlight mode is turned is turned on when the mouse enters the area of the chart -->
             <template v-if="!state.highlight_mode">
               <template
-                v-for="(channel, channel_index) in workspace_store.workspace
-                  .channels"
+                v-for="(channel, channel_index) in workspace_store.channels"
                 :key="channel.name"
               >
                 <template
@@ -293,11 +291,7 @@ const width = computed(() => {
                     :x="x_pos[modifier_index]"
                     :y="y_pos[channel_index][sample_index]"
                     :fill="
-                      colors[
-                        workspace_store.modifier_types[channel.name][
-                          sample.name
-                        ][modifier_name]
-                      ]
+                      colors[channel.modifier_types[sample.name][modifier_name]]
                     "
                   />
                   <text
@@ -318,8 +312,7 @@ const width = computed(() => {
             </template>
             <template v-else>
               <template
-                v-for="(channel, channel_index) in workspace_store.workspace
-                  .channels"
+                v-for="(channel, channel_index) in workspace_store.channels"
                 :key="channel.name"
               >
                 <template
@@ -336,11 +329,7 @@ const width = computed(() => {
                     :x="x_pos[modifier_index]"
                     :y="y_pos[channel_index][sample_index]"
                     :fill="
-                      colors[
-                        workspace_store.modifier_types[channel.name][
-                          sample.name
-                        ][modifier_name]
-                      ]
+                      colors[channel.modifier_types[sample.name][modifier_name]]
                     "
                     fill-opacity="0.3"
                     @mouseenter="
@@ -395,8 +384,7 @@ const width = computed(() => {
               />
               <!-- highlight rects corresponding to samples with the same modifier as the one the mouse is over -->
               <template
-                v-for="(channel, channel_index) in workspace_store.workspace
-                  .channels"
+                v-for="(channel, channel_index) in workspace_store.channels"
                 :key="channel.name"
               >
                 <rect
@@ -408,7 +396,7 @@ const width = computed(() => {
                   :y="y_pos[channel_index][sample_index]"
                   :fill="
                     colors[
-                      workspace_store.modifier_types[channel.name][
+                      channel.modifier_types[
                         channel.samples[sample_index].name
                       ][highlighted_modifier]
                     ]
