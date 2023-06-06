@@ -13,30 +13,40 @@ const { highlight, unhighlight, ishighlighted } = useHighlighted();
 const props = defineProps<{
   id: number;
   channel_index: number;
+  postfit: boolean;
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
 
-const channel = workspace_store.workspace.channels[props.channel_index];
-const channel_name = workspace_store.channel_names[props.channel_index];
-const channel_stacked_data =
-  workspace_store.stacked_data_per_bin[props.channel_index];
+const name = 'stackedchart' + (props.postfit ? 'postfit' : 'prefit');
 
-const number_of_bins = channel.samples[0].data.length;
+const number_of_bins =
+  workspace_store.workspace.channels[props.channel_index].samples[0].data
+    .length;
 
 const bins = Array.from({ length: number_of_bins }, (e, i) => i);
 
+const stacked_data = computed(() => {
+  return props.postfit
+    ? workspace_store.stacked_data_per_bin_postfit[props.channel_index]
+    : workspace_store.stacked_data_per_bin[props.channel_index];
+});
+
+const channel_name = computed(() => {
+  return workspace_store.channel_names[props.channel_index];
+});
+
 const maximum = computed(() => {
   let max = 0;
-  for (let i_bin = 0; i_bin < channel_stacked_data.content.length; i_bin++) {
+  for (let i_bin = 0; i_bin < stacked_data.value.content.length; i_bin++) {
     const high_value =
-      channel_stacked_data.content[i_bin][
+      stacked_data.value.content[i_bin][
         workspace_store.process_names.length - 1
       ].high;
     if (max < high_value) {
       max = high_value;
     }
-    const data_value = channel_stacked_data.data[i_bin];
+    const data_value = stacked_data.value.data[i_bin];
     if (max < data_value) {
       max = data_value;
     }
@@ -44,7 +54,9 @@ const maximum = computed(() => {
   return max;
 });
 
-const yscale = linear_scale(0, maximum.value, 0, 300);
+const yscale = computed(() => {
+  return linear_scale(0, maximum.value, 0, 300);
+});
 
 const bin_width = computed(() => {
   const max_width = 1000;
@@ -100,18 +112,16 @@ const y_ticks = computed(() => {
 
 const y_tick_positions = computed(() => {
   const max = maximum_normalised.value;
-  let tick_positions = [];
-  for (const tick of y_ticks.value) {
-    tick_positions.push(-(300 / max) * tick);
-  }
-  return tick_positions;
+  return y_ticks.value.map((tick) => -(300 / max) * tick);
 });
 
-const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
+const yaxis_path = computed(() => {
+  return axis_path(100, 350, 40, y_tick_positions.value, false, true);
+});
 </script>
 
 <template>
-  <div class="stackedchart">
+  <div class="name column">
     <h3
       :style="
         'width: ' +
@@ -125,7 +135,7 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
     <svg
       height="400"
       :width="bin_width * number_of_bins + 300"
-      :id="'svg_stackedchart' + workspace_store.name + channel_name"
+      :id="'svg_' + name + workspace_store.name + channel_name"
     >
       <template v-for="bin in bins" :key="bin">
         <template
@@ -135,14 +145,11 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
           <rect
             :x="bin_width * bin + 100"
             :width="bin_width"
-            :y="
-              350 -
-              yscale * channel_stacked_data.content[bin][process_index].high
-            "
+            :y="350 - yscale * stacked_data.content[bin][process_index].high"
             :height="
               yscale *
-              (channel_stacked_data.content[bin][process_index].high -
-                channel_stacked_data.content[bin][process_index].low)
+              (stacked_data.content[bin][process_index].high -
+                stacked_data.content[bin][process_index].low)
             "
             :fill="workspace_store.colors[process_name]"
             :class="{
@@ -154,8 +161,8 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
         </template>
         <DataPoint
           :x="bin_width * (bin + 0.5) + 100"
-          :nominal="350 - yscale * channel_stacked_data.data[bin]"
-          :uncertainty="yscale * channel_stacked_data.data[bin] ** 0.5"
+          :nominal="350 - yscale * stacked_data.data[bin]"
+          :uncertainty="yscale * stacked_data.data[bin] ** 0.5"
         />
       </template>
       <path fill="none" stroke="#000" :d="xaxis_path"></path>
@@ -218,7 +225,7 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
       />
     </svg>
     <DownloadHelper
-      :svg_id="'stackedchart' + workspace_store.name + channel_name"
+      :svg_id="name + workspace_store.name + channel_name"
       :id="id"
     />
   </div>

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { useStoreIDStore } from 'src/stores/storeid';
+//import { useChannelStore } from 'src/stores/channel';
 import type {
   IAnalysis,
   IStackedChannel,
@@ -10,9 +11,47 @@ import type {
   IFitResults,
   ITaskResults,
   IWorkspace,
+  INormFactor,
 } from '../interfaces';
 import { color_scheme } from '../utils/colors';
 import { Notify } from 'quasar';
+
+function get_normfactor(
+  normfactors: { [key: string]: INormFactor },
+  process_name: string,
+  postfit: boolean,
+  fitresults: IFitResults | undefined
+): number {
+  let factor = 1.0;
+  for (const key in normfactors) {
+    const normfactor = normfactors[key];
+    if (!normfactor.processes.includes(process_name)) continue;
+    if (!postfit) {
+      factor = factor * normfactor.value;
+    } else {
+      const np_index: number = fitresults ? fitresults.labels.indexOf(key) : -1;
+      factor = factor * (fitresults ? fitresults.bestfit[np_index] : 1);
+    }
+  }
+  return factor;
+}
+
+function get_pulleffects(
+  modifier_types: { [key: string]: string },
+  fitresults: IFitResults
+): number {
+  let factor = 1.0;
+  for (const modifier_name in fitresults.labels) {
+    const modifier_type = modifier_types[modifier_name];
+    if (modifier_type === 'undefined') continue;
+    if (modifier_type === 'lumi') continue;
+    if (modifier_type === 'staterror') continue;
+
+    if (modifier_type !== 'normsys') continue;
+    factor = factor * 1.0;
+  }
+  return factor;
+}
 
 export const useWorkspaceStore = function (id: number) {
   return defineStore('workspace' + id, {
@@ -24,6 +63,7 @@ export const useWorkspaceStore = function (id: number) {
       process_color_index: {} as { [key: string]: string },
       download_urls: {} as { [key: string]: string },
       loading: true as boolean,
+      nps: {} as IFitResults,
       fitresults: {} as IFitResults,
       fitted: false as boolean,
       fitting: false as boolean,
@@ -51,12 +91,10 @@ export const useWorkspaceStore = function (id: number) {
       process_titles(state): { [key: string]: string } {
         const process_titles: { [key: string]: string } = {};
         for (const process_name of this.process_names) {
-          if (process_name in state.process_title_index) {
-            process_titles[process_name] =
-              state.process_title_index[process_name];
-          } else {
-            process_titles[process_name] = process_name;
-          }
+          process_titles[process_name] =
+            process_name in state.process_title_index
+              ? state.process_title_index[process_name]
+              : process_name;
         }
         return process_titles;
       },
@@ -69,7 +107,10 @@ export const useWorkspaceStore = function (id: number) {
               0
             );
             // set initial yields to zero if key does not exist yet
-            process_yields[p.name] = (process_yields[p.name] || 0) + yields;
+            process_yields[p.name] =
+              (process_yields[p.name] || 0) +
+              yields *
+                get_normfactor(this.normfactors, p.name, false, undefined);
           }
         }
         return process_yields;
@@ -81,16 +122,15 @@ export const useWorkspaceStore = function (id: number) {
       channel_titles(state): { [key: string]: string } {
         const channel_titles: { [key: string]: string } = {};
         for (const channel_name of this.channel_names) {
-          if (channel_name in state.channel_title_index) {
-            channel_titles[channel_name] =
-              state.channel_title_index[channel_name];
-          } else {
-            channel_titles[channel_name] = channel_name;
-          }
+          channel_titles[channel_name] =
+            channel_name in state.channel_title_index
+              ? state.channel_title_index[channel_name]
+              : channel_name;
         }
         return channel_titles;
       },
       yield_of_process_in_channel(state) {
+        const normfactors = this.normfactors;
         // returns the overall yield of a given process in a given channel
         return function (channel_name: string, process_name: string): number {
           for (const c of state.workspace.channels) {
@@ -104,34 +144,46 @@ export const useWorkspaceStore = function (id: number) {
               }
               yields = p.data.reduce((pv, cv) => pv + cv, 0);
             }
-            return yields;
+            return (
+              yields *
+              get_normfactor(normfactors, process_name, false, undefined)
+            );
           }
           return 0;
         };
       },
       normfactors(state) {
-        const factors = [];
-        const tempNames: string[] = [];
+        const factors = {} as { [key: string]: INormFactor };
         for (const channel of state.workspace.channels) {
           for (const sample of channel.samples) {
             for (const modifier of sample.modifiers) {
               if (modifier.type !== 'normfactor') {
                 continue;
               }
-              if (tempNames.includes(modifier.name)) {
+              if (modifier.name in factors) {
+                if (!factors[modifier.name].processes.includes(sample.name)) {
+                  factors[modifier.name].processes.push(sample.name);
+                }
                 continue;
               }
-              let fixed = false;
-              for (const parameter of state.workspace.measurements[0].config
-                .parameters) {
-                if (parameter.name !== modifier.name) {
-                  continue;
-                }
-                fixed = parameter.fixed !== undefined && parameter.fixed;
+              const parameter =
+                state.workspace.measurements[0].config.parameters.find(
+                  (obj) => {
+                    return obj.name === modifier.name;
+                  }
+                );
+              if (!parameter) {
+                console.log(
+                  'Could not find parameter with name ' + modifier.name
+                );
+                continue;
               }
-              const factor = { name: modifier.name, fixed: fixed };
-              factors.push(factor);
-              tempNames.push(modifier.name);
+              factors[modifier.name] = {
+                name: modifier.name,
+                fixed: parameter.fixed !== undefined && parameter.fixed,
+                value: parameter.inits ? parameter.inits[0] : 1.0,
+                processes: [sample.name],
+              };
             }
           }
         }
@@ -204,7 +256,14 @@ export const useWorkspaceStore = function (id: number) {
                 process.high = previous_high;
               } else {
                 process.high =
-                  previous_high + c.samples[process_index].data[i_bin];
+                  previous_high +
+                  c.samples[process_index].data[i_bin] *
+                    get_normfactor(
+                      this.normfactors,
+                      process.name,
+                      false,
+                      undefined
+                    );
               }
               processes.push(process);
               previous_high = process.high;
@@ -216,6 +275,46 @@ export const useWorkspaceStore = function (id: number) {
         }
         return data;
       },
+      stacked_data_per_bin_postfit(state): IStackedChannelBinwise[] {
+        const data_prefit = this.stacked_data_per_bin;
+        if (!state.fitted) return data_prefit;
+
+        const data_postfit = [] as IStackedChannelBinwise[];
+        for (const channel_prefit of data_prefit) {
+          const channel = {} as IStackedChannelBinwise;
+          channel.name = channel_prefit.name;
+          channel.data = channel_prefit.data;
+          channel.content = [];
+          for (const bin of channel_prefit.content) {
+            const processes = [];
+            let previous_high = 0;
+            for (const process of bin) {
+              const process_postfit = {} as IStackedProcess;
+              process_postfit.name = process.name;
+              const prefit_yields = process.high - process.low;
+              const norm_factor = get_normfactor(
+                this.normfactors,
+                process.name,
+                true,
+                state.nps
+              );
+              const pulls = get_pulleffects(
+                this.modifier_types[channel.name][process.name],
+                state.nps
+              );
+              process_postfit.low = previous_high;
+              process_postfit.high =
+                Math.max(0, prefit_yields * norm_factor * pulls) +
+                previous_high;
+              previous_high = process_postfit.high;
+              processes.push(process_postfit);
+            }
+            channel.content.push(processes);
+          }
+          data_postfit.push(channel);
+        }
+        return data_postfit;
+      },
       colors(): { [key: string]: string } {
         const color_per_process: { [key: string]: string } = {};
         for (
@@ -224,13 +323,10 @@ export const useWorkspaceStore = function (id: number) {
           process_index++
         ) {
           const process_name = this.process_names[process_index];
-          if (process_name in this.process_color_index) {
-            color_per_process[process_name] =
-              this.process_color_index[process_name];
-          } else {
-            color_per_process[process_name] =
-              color_scheme[process_index % color_scheme.length];
-          }
+          color_per_process[process_name] =
+            process_name in this.process_color_index
+              ? this.process_color_index[process_name]
+              : color_scheme[process_index % color_scheme.length];
         }
         return color_per_process;
       },
@@ -362,12 +458,17 @@ export const useWorkspaceStore = function (id: number) {
         this.fitting = false;
         this.result_id = '';
         this.fitresults = {} as IFitResults;
+        this.nps = {} as IFitResults;
         this.process_title_index = {} as { [key: string]: string };
         this.channel_title_index = {} as { [key: string]: string };
         this.process_color_index = {} as { [key: string]: string };
         this.download_urls = {} as { [key: string]: string };
       },
       async get_fit_results(): Promise<void> {
+        if (this.fitted) {
+          this.nps.bestfit = [...this.fitresults.bestfit];
+          return;
+        }
         this.fitting = true;
         const url =
           'https://workspaceexplorerbackend-workspaceexplorerbackend.app.cern.ch/api/v1/workspace';
@@ -393,6 +494,10 @@ export const useWorkspaceStore = function (id: number) {
                 .then((data) => (response_data = data));
               if (response_data.ready) {
                 this.fitresults = response_data.value;
+                this.nps.bestfit = [...this.fitresults.bestfit];
+                this.nps.uncertainty = [...this.fitresults.uncertainty];
+                this.nps.labels = [...this.fitresults.labels];
+                this.nps.correlations = [...this.fitresults.correlations];
                 this.fitted = true;
                 this.fitting = false;
               } else {

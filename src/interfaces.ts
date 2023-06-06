@@ -31,6 +31,11 @@ export interface IFitResults {
   labels: string[];
 }
 
+export interface INPs {
+  bestfit: number[];
+  labels: string[];
+}
+
 export interface ITaskResults {
   ready: boolean;
   successful: boolean;
@@ -118,7 +123,8 @@ export interface IStackedChannelBinwise {
   //               {name: process2, low: low2, high: high2},
   //                ...],
   //              ...
-  //   ]
+  //   ],
+  //   data: data1,
   // }
   name: string;
   content: Array<Array<IStackedProcess>>;
@@ -128,6 +134,8 @@ export interface IStackedChannelBinwise {
 export interface INormFactor {
   name: string;
   fixed: boolean;
+  value: number;
+  processes: string[];
 }
 
 export interface IUncertaintyPerSystematic {

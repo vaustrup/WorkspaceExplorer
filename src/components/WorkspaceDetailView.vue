@@ -11,6 +11,7 @@ import ChannelListItem from 'src/components/ChannelListItem.vue';
 import NormFactorListItem from 'src/components/NormFactorListItem.vue';
 import { useWorkspaceStore } from 'src/stores/workspace';
 import CorrelationChart from 'src/components/charts/CorrelationChart.vue';
+import SystematicChart from 'src/components/charts/SystematicChart.vue';
 
 const props = defineProps<{
   id: number;
@@ -120,6 +121,7 @@ const height = computed(() => {
               :key="channel.name"
               :id="id"
               :channel_index="channel_index"
+              :postfit="false"
             />
           </HorizontalScrollArea>
         </q-expansion-item>
@@ -131,15 +133,54 @@ const height = computed(() => {
           />
         </q-expansion-item>
         <q-separator inset></q-separator>
+        <q-expansion-item
+          switch-toggle-side
+          label="Systematic Uncertainty Chart"
+        >
+          <div
+            class="column"
+            v-for="(
+              modifier_name, modifier_index
+            ) in workspace_store.modifier_names"
+            :key="modifier_name"
+          >
+            <h3>{{ modifier_name }}</h3>
+            <div class="row">
+              <SystematicChart
+                v-for="(
+                  channel, channel_index
+                ) in workspace_store.stacked_data_per_bin"
+                :key="channel.name"
+                :id="id"
+                :channel_index="channel_index"
+                :modifier_index="modifier_index"
+              />
+            </div>
+          </div>
+        </q-expansion-item>
+        <q-separator inset></q-separator>
         <q-expansion-item switch-toggle-side label="Fit Results">
           <q-btn
             @click="workspace_store.get_fit_results()"
             :loading="workspace_store.fitting"
-            :disable="workspace_store.fitting || workspace_store.fitted"
-            >Fit Workspace</q-btn
+            :disable="workspace_store.fitting"
+            >{{
+              workspace_store.fitted ? 'Reset to fit results' : 'Fit Workspace'
+            }}</q-btn
           >
           <div v-if="workspace_store.fitted" class="row justify-around">
             <PullChart :id="id" />
+            <div>
+              <StackedChart
+                v-for="(
+                  channel, channel_index
+                ) in workspace_store.stacked_data_per_bin_postfit"
+                :key="channel.name"
+                :id="id"
+                :channel_index="channel_index"
+                :postfit="true"
+              />
+            </div>
             <CorrelationChart :id="id" />
           </div>
         </q-expansion-item>
