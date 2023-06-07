@@ -111,7 +111,7 @@ const height = computed(() => {
         </q-expansion-item>
         <q-separator inset></q-separator>
         <q-expansion-item switch-toggle-side label="Data-MC Comparisons">
-          <HorizontalScrollArea height="550">
+          <HorizontalScrollArea height="650">
             <StackedChart
               v-for="(channel, channel_index) in workspace_store.channels"
               :key="channel.name"

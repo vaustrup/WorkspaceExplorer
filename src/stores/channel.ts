@@ -225,7 +225,7 @@ export const useChannelStore = function (id: number, channel: string) {
             } else {
               process.high =
                 previous_high +
-                sample.data[i_bin] * this.normfactor(sample, true);
+                sample.data[i_bin] * Math.max(0, this.normfactor(sample, true));
             }
             processes.push(process);
             previous_high = process.high;

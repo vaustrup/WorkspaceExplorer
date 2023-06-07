@@ -34,3 +34,7 @@ export function axis_path(
 export function round_to_n_digits(value: number, n: number): number {
   return Math.round(value * 10 ** n) / 10 ** n;
 }
+
+export function number_of_zeroes(x: number): number {
+  return Math.floor(Math.log10(x));
+}
