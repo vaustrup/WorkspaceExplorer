@@ -56,7 +56,7 @@ export interface IModifier {
 
 export interface INormSys {
   hi: number;
-  low: number;
+  lo: number;
 }
 
 export interface IHistoSys {
@@ -86,7 +86,12 @@ export interface IChannelGetters {
   title: string;
   modifier_names: string[];
   modifier_types: { [key: string]: { [key: string]: string } };
+  modifier_yields: {
+    [key: string]: { [key: string]: { [key: string]: number[] } };
+  };
+  normfactor: (process: IProcess, postfit: boolean) => number;
   normfactor_names: string[];
+  number_of_bins: number;
 }
 
 export interface IChannelActions {

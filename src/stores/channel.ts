@@ -2,30 +2,12 @@ import { defineStore } from 'pinia';
 import { useWorkspaceStore } from './workspace';
 import {
   IChannelState,
-  IFitResults,
   IProcess,
   IStackedChannel,
   IStackedChannelBinwise,
   IStackedProcess,
   IWorkspaceState,
 } from 'src/interfaces';
-
-function get_pulleffects(
-  modifier_types: { [key: string]: string },
-  fitresults: IFitResults
-): number {
-  let factor = 1.0;
-  for (const modifier_name in fitresults.labels) {
-    const modifier_type = modifier_types[modifier_name];
-    if (modifier_type === 'undefined') continue;
-    if (modifier_type === 'lumi') continue;
-    if (modifier_type === 'staterror') continue;
-
-    if (modifier_type !== 'normsys') continue;
-    factor = factor * 1.0;
-  }
-  return factor;
-}
 
 export const useChannelStore = function (id: number, channel: string) {
   return defineStore('channel' + id + channel, {
@@ -96,6 +78,128 @@ export const useChannelStore = function (id: number, channel: string) {
         }
         return types;
       },
+      modifier_yields(): {
+        [key: string]: { [key: string]: { [key: string]: number[] } };
+      } {
+        const yields = {} as {
+          [key: string]: { [key: string]: { [key: string]: number[] } };
+        };
+        for (const sample of this.samples) {
+          const yields_per_sample = {} as {
+            [key: string]: { [key: string]: number[] };
+          };
+          for (const modifier_name of this.workspace_store.modifier_names) {
+            yields_per_sample[modifier_name] = {};
+            const modifier_type =
+              this.modifier_types[sample.name][modifier_name];
+            // first check if the modifier is present
+            // for this specific sample in this channel
+            if (modifier_type === 'none') {
+              yields_per_sample[modifier_name]['up'] = new Array(
+                this.number_of_bins
+              ).fill(0);
+              yields_per_sample[modifier_name]['down'] = new Array(
+                this.number_of_bins
+              ).fill(0);
+              continue;
+            }
+            const modifier = sample.modifiers.find(
+              (m) => m.name === modifier_name
+            );
+            if (!modifier) {
+              console.log(
+                'Could not find modifier ' +
+                  modifier_name +
+                  ' for sample ' +
+                  sample.name +
+                  ' in channel ' +
+                  this.name
+              );
+              continue;
+            }
+            // do normsys next
+            if (modifier_type === 'normsys') {
+              yields_per_sample[modifier_name]['up'] = sample.data.map(
+                (x) =>
+                  x * ((modifier.data as { hi: number; lo: number }).hi - 1)
+              );
+              yields_per_sample[modifier_name]['down'] = sample.data.map(
+                (x) =>
+                  x * ((modifier.data as { hi: number; lo: number }).lo - 1)
+              );
+              continue;
+            }
+            if (modifier_type === 'histosys') {
+              yields_per_sample[modifier_name]['up'] = sample.data.map(
+                (x, i) =>
+                  (modifier.data as { hi_data: number[]; lo_data: number[] })
+                    .hi_data[i] - x
+              );
+              yields_per_sample[modifier_name]['down'] = sample.data.map(
+                (x, i) =>
+                  x -
+                  (modifier.data as { hi_data: number[]; lo_data: number[] })
+                    .lo_data[i]
+              );
+              continue;
+            }
+            if (modifier_type === 'normhisto') {
+              const second_modifier = sample.modifiers.filter(
+                (m) => m.name === modifier_name
+              )[1];
+              const norm_modifier =
+                second_modifier.type === 'normsys' ? second_modifier : modifier;
+              const histo_modifier =
+                second_modifier.type === 'histosys'
+                  ? second_modifier
+                  : modifier;
+              yields_per_sample[modifier_name]['up'] = sample.data.map(
+                (x, i) =>
+                  (
+                    histo_modifier.data as {
+                      hi_data: number[];
+                      lo_data: number[];
+                    }
+                  ).hi_data[i] - x
+              );
+              yields_per_sample[modifier_name]['down'] = sample.data.map(
+                (x, i) =>
+                  x -
+                  (
+                    histo_modifier.data as {
+                      hi_data: number[];
+                      lo_data: number[];
+                    }
+                  ).lo_data[i]
+              );
+              yields_per_sample[modifier_name]['up'] = yields_per_sample[
+                modifier_name
+              ]['up'].map(
+                (x) =>
+                  x *
+                  ((norm_modifier.data as { hi: number; lo: number }).hi - 1)
+              );
+              yields_per_sample[modifier_name]['down'] = yields_per_sample[
+                modifier_name
+              ]['down'].map(
+                (x) =>
+                  x *
+                  ((norm_modifier.data as { hi: number; lo: number }).lo - 1)
+              );
+              continue;
+            }
+            // for lumi, normfactors, staterrors do nothing for now
+            yields_per_sample[modifier_name]['up'] = new Array(
+              this.number_of_bins
+            ).fill(0);
+            yields_per_sample[modifier_name]['down'] = new Array(
+              this.number_of_bins
+            ).fill(0);
+          }
+          yields[sample.name] = yields_per_sample;
+        }
+        return yields;
+      },
       normfactor(state) {
         return (process: IProcess, postfit: boolean): number => {
           let factor = 1.0;
@@ -119,6 +223,34 @@ export const useChannelStore = function (id: number, channel: string) {
                   ? state.workspace_store.nps.bestfit[np_index]
                   : 1);
             }
+          }
+          return factor;
+        };
+      },
+      pulleffects(): (process_name: string, bin: number) => number {
+        return (process_name: string, bin: number): number => {
+          let factor = 1.0;
+          for (const modifier_name of this.workspace_store.nps.labels) {
+            // need to filter out lumi, staterror, normfactor
+            const modifier_type =
+              this.modifier_types[process_name][modifier_name];
+            if (modifier_type === undefined) continue;
+            if (modifier_type === 'lumi') continue;
+            if (modifier_type === 'staterror') continue;
+            if (modifier_type === 'normfactor') continue;
+
+            const sample = this.samples.find((s) => s.name === process_name);
+            if (!sample) {
+              console.log('Could not find sample with name.');
+              continue;
+            }
+            const modifier_index =
+              this.workspace_store.nps.labels.indexOf(modifier_name);
+            factor *=
+              1 +
+              this.workspace_store.nps.bestfit[modifier_index] *
+                (this.modifier_yields[process_name][modifier_name]['up'][bin] /
+                  sample.data[bin]);
           }
           return factor;
         };
@@ -225,7 +357,9 @@ export const useChannelStore = function (id: number, channel: string) {
             } else {
               process.high =
                 previous_high +
-                sample.data[i_bin] * Math.max(0, this.normfactor(sample, true));
+                sample.data[i_bin] *
+                  Math.max(0, this.normfactor(sample, true)) *
+                  this.pulleffects(process.name, i_bin);
             }
             processes.push(process);
             previous_high = process.high;
@@ -233,6 +367,9 @@ export const useChannelStore = function (id: number, channel: string) {
           channel.content.push(processes);
         }
         return channel;
+      },
+      number_of_bins(): number {
+        return this.samples[0].data.length;
       },
     },
     actions: {

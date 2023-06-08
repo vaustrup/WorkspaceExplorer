@@ -33,7 +33,7 @@ const height = computed(() => {
       :style="
         'width: ' +
         3 * radius +
-        'px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
+        'px; overflow: hidden; white-space: nowrap; text-align: center; text-overflow: ellipsis; display: inline-block;'
       "
       :title="channel.title"
     >

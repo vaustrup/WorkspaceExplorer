@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import NormalizedBarChart from 'src/components/charts/NormalizedBarChart.vue';
 import PieChart from 'src/components/charts/PieChart.vue';
 import StackedChart from 'src/components/charts/StackedChart.vue';
@@ -24,6 +24,32 @@ const workspace_store = useWorkspaceStore(props.id)();
 const height = computed(() => {
   return String(
     Math.max(2 * 100, 25 * workspace_store.number_of_processes) + 150
+  );
+});
+
+const modifier_filter = ref('');
+const current = ref(1);
+const syst_plots_per_page = 5;
+
+const modifiers_to_display = computed(() => {
+  // get type of modifier in any region and for any sample
+  // (it does not matter which because in this step we only
+  // want to filter out lumi, staterror, normfactor)
+  const types =
+    workspace_store.channels[0].modifier_types[
+      workspace_store.channels[0].samples[0].name
+    ];
+  const systematic_variations = workspace_store.modifier_names.filter(
+    (item) =>
+      !(
+        types[item] === 'lumi' ||
+        types[item] === 'staterror' ||
+        types[item] === 'normfactor'
+      )
+  );
+  // afterwards, filter by name
+  return systematic_variations.filter((item) =>
+    item.includes(modifier_filter.value)
   );
 });
 </script>
@@ -129,29 +155,71 @@ const height = computed(() => {
           />
         </q-expansion-item>
         <q-separator inset></q-separator>
-        <!-- <q-expansion-item
+        <q-expansion-item
           switch-toggle-side
           label="Systematic Uncertainty Chart"
         >
+          <div class="row">
+            <q-input
+              filled
+              bottom-slots
+              label="Filter by name"
+              type="text"
+              v-model="modifier_filter"
+              hide-bottom-space
+              style="margin-right: 1em"
+            ></q-input>
+            <q-pagination
+              v-model="current"
+              :max="
+                Math.floor(modifiers_to_display.length / syst_plots_per_page) +
+                1
+              "
+              input
+              size="xl"
+            />
+          </div>
           <div
             class="column"
-            v-for="(
-              modifier_name, modifier_index
-            ) in workspace_store.modifier_names"
+            v-for="modifier_name in modifiers_to_display.slice(
+              (current - 1) * syst_plots_per_page,
+              current * syst_plots_per_page
+            )"
             :key="modifier_name"
           >
-            <h3>{{ modifier_name }}</h3>
-            <div class="row">
-              <SystematicChart
+            <h3 style="text-align: center">{{ modifier_name }}</h3>
+            <HorizontalScrollArea height="550">
+              <div
+                class="row"
                 v-for="(channel, channel_index) in workspace_store.channels"
                 :key="channel.name"
-                :id="id"
-                :channel_index="channel_index"
-                :modifier_index="modifier_index"
-              />
-            </div>
+              >
+                <SystematicChart
+                  :id="id"
+                  :channel_index="channel_index"
+                  :modifier_name="modifier_name"
+                />
+              </div>
+            </HorizontalScrollArea>
           </div>
-        </q-expansion-item> -->
+          <div class="row">
+            <q-input
+              filled
+              bottom-slots
+              label="Filter by name"
+              type="text"
+              v-model="modifier_filter"
+              hide-bottom-space
+              style="margin-right: 1em"
+            ></q-input>
+            <q-pagination
+              v-model="current"
+              :max="Math.floor(modifiers_to_display.length / 10) + 1"
+              input
+              size="xl"
+            />
+          </div>
+        </q-expansion-item>
         <q-separator inset></q-separator>
         <q-expansion-item switch-toggle-side label="Fit Results">
           <q-btn
@@ -188,5 +256,9 @@ const height = computed(() => {
 
 h2 {
   font-size: 2.5em;
+}
+
+h3 {
+  font-size: 1.8em;
 }
 </style>

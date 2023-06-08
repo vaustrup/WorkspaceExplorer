@@ -9,61 +9,58 @@ import DataPoint from 'src/components/charts/DataPoint.vue';
 const props = defineProps<{
   id: number;
   channel_index: number;
-  modifier_index: number;
+  modifier_name: string;
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
 
-const number_of_bins =
-  workspace_store.workspace.channels[props.channel_index].samples[0].data
-    .length;
+const channel = workspace_store.channels[props.channel_index];
 
-const bins = Array.from({ length: number_of_bins }, (e, i) => i);
+const bins = Array.from({ length: channel.number_of_bins }, (e, i) => i);
 const bin_width = computed(() => {
   const max_width = 1000;
   const min_width = 250;
   const width_per_bin = 25;
-  let total_width = Math.max(min_width, width_per_bin * number_of_bins); // plot should have a width of at least 250px
+  let total_width = Math.max(min_width, width_per_bin * channel.number_of_bins); // plot should have a width of at least 250px
   total_width = Math.min(total_width, max_width); // plot should have a width of at most 1000px
-  return total_width / number_of_bins;
+  return total_width / channel.number_of_bins;
 });
 
 const x_ticks = [
-  ...Array(number_of_bins + 1)
+  ...Array(channel.number_of_bins + 1)
     .fill(0)
     .map((_, i) => i * bin_width.value),
 ];
 const xaxis_path = axis_path(
   100,
   350,
-  bin_width.value * number_of_bins + 100,
+  bin_width.value * channel.number_of_bins + 100,
   x_ticks,
   true,
   true
 );
 
-const channel_title = computed(() => {
-  return workspace_store.channel_titles[
-    workspace_store.channel_names[props.channel_index]
-  ];
-});
-const modifier_name = computed(() => {
-  return workspace_store.modifier_names[props.modifier_index];
-});
-
 const stacked_data = computed(() => {
-  return workspace_store.stacked_data_per_bin[props.channel_index];
+  return channel.stacked_data_per_bin;
 });
 
 const maximum = computed(() => {
   let max = 0;
   for (let i_bin = 0; i_bin < stacked_data.value.content.length; i_bin++) {
-    const high_value =
+    const nominal =
       stacked_data.value.content[i_bin][
         workspace_store.process_names.length - 1
       ].high;
-    if (max < high_value) {
-      max = high_value;
+    if (max < nominal) {
+      max = nominal;
+    }
+    const up = nominal + up_variation.value[i_bin];
+    if (max < up) {
+      max = up;
+    }
+    const down = nominal + down_variation.value[i_bin];
+    if (max < down) {
+      max = down;
     }
     const data_value = stacked_data.value.data[i_bin];
     if (max < data_value) {
@@ -114,83 +111,77 @@ const y_tick_positions = computed(() => {
 const yaxis_path = computed(() => {
   return axis_path(100, 350, 40, y_tick_positions.value, false, true);
 });
+
+const nominal = (bin: number): number => {
+  return stacked_data.value.content[bin][
+    workspace_store.process_names.length - 1
+  ].high;
+};
+
+const up_variation = computed(() => {
+  let variation = new Array(channel.number_of_bins).fill(0);
+  for (const yields in channel.modifier_yields) {
+    variation = variation.map(
+      (e, i) =>
+        e + channel.modifier_yields[yields][props.modifier_name]['up'][i]
+    );
+  }
+  return variation;
+});
+
+const down_variation = computed(() => {
+  let variation = new Array(channel.number_of_bins).fill(0);
+  for (const yields in channel.modifier_yields) {
+    variation = variation.map(
+      (e, i) =>
+        e + channel.modifier_yields[yields][props.modifier_name]['down'][i]
+    );
+  }
+  return variation;
+});
 </script>
 
 <template>
   <div class="column">
-    <h3>
-      {{ channel_title }}
+    <h3
+      :style="
+        'width: ' +
+        (200 + bin_width * channel.number_of_bins) +
+        'px; overflow: hidden; text-align: center; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
+      "
+    >
+      {{ channel.title }}
     </h3>
     <svg
       height="400"
-      :width="bin_width * number_of_bins + 300"
+      :width="bin_width * channel.number_of_bins + 300"
       :id="
         'svg_systematicchart' +
         workspace_store.name +
-        channel_title +
+        channel.title +
         modifier_name
       "
     >
       <template v-for="bin in bins" :key="bin">
         <line
           :x1="100 + bin * bin_width"
-          :y1="
-            350 -
-            yscale *
-              stacked_data.content[bin][
-                workspace_store.process_names.length - 1
-              ].high
-          "
+          :y1="350 - yscale * nominal(bin)"
           :x2="100 + (bin + 1) * bin_width"
-          :y2="
-            350 -
-            yscale *
-              stacked_data.content[bin][
-                workspace_store.process_names.length - 1
-              ].high
-          "
+          :y2="350 - yscale * nominal(bin)"
           stroke="black"
         />
         <line
           :x1="100 + bin * bin_width"
-          :y1="
-            350 -
-            yscale *
-              1.1 *
-              stacked_data.content[bin][
-                workspace_store.process_names.length - 1
-              ].high
-          "
+          :y1="350 - yscale * (nominal(bin) + up_variation[bin])"
           :x2="100 + (bin + 1) * bin_width"
-          :y2="
-            350 -
-            yscale *
-              1.1 *
-              stacked_data.content[bin][
-                workspace_store.process_names.length - 1
-              ].high
-          "
+          :y2="350 - yscale * (nominal(bin) + up_variation[bin])"
           stroke="blue"
         />
         <line
           :x1="100 + bin * bin_width"
-          :y1="
-            350 -
-            yscale *
-              0.9 *
-              stacked_data.content[bin][
-                workspace_store.process_names.length - 1
-              ].high
-          "
+          :y1="350 - yscale * (nominal(bin) + down_variation[bin])"
           :x2="100 + (bin + 1) * bin_width"
-          :y2="
-            350 -
-            yscale *
-              0.9 *
-              stacked_data.content[bin][
-                workspace_store.process_names.length - 1
-              ].high
-          "
+          :y2="350 - yscale * (nominal(bin) + down_variation[bin])"
           stroke="red"
         />
         <DataPoint
@@ -230,9 +221,15 @@ const yaxis_path = computed(() => {
     </svg>
     <DownloadHelper
       :svg_id="
-        'systematicchart' + workspace_store.name + channel_title + modifier_name
+        'systematicchart' + workspace_store.name + channel.title + modifier_name
       "
       :id="id"
     />
   </div>
 </template>
+
+<style scoped>
+h3 {
+  font-size: 1.2em;
+}
+</style>

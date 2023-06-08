@@ -21,9 +21,7 @@ const workspace_store = useWorkspaceStore(props.id)();
 const name = 'stackedchart' + (props.postfit ? 'postfit' : 'prefit');
 const channel = workspace_store.channels[props.channel_index];
 
-const number_of_bins = channel.samples[0].data.length;
-
-const bins = Array.from({ length: number_of_bins }, (e, i) => i);
+const bins = Array.from({ length: channel.number_of_bins }, (e, i) => i);
 
 const x_offset = 100;
 const y_offset = 100;
@@ -42,7 +40,7 @@ const stacked_data = computed(() => {
 
 const maximum = computed(() => {
   let max = 0;
-  for (let i_bin = 0; i_bin < number_of_bins; i_bin++) {
+  for (let i_bin = 0; i_bin < channel.number_of_bins; i_bin++) {
     const high_value =
       stacked_data.value.content[i_bin][
         workspace_store.process_names.length - 1
@@ -61,7 +59,7 @@ const maximum = computed(() => {
 const maximum_deviation_ratio = computed(() => {
   // return maximum deviation from unity in ratio
   let max = 0;
-  for (let i_bin = 0; i_bin < number_of_bins; i_bin++) {
+  for (let i_bin = 0; i_bin < channel.number_of_bins; i_bin++) {
     max = Math.max(
       max,
       Math.abs(
@@ -93,20 +91,20 @@ const bin_width = computed(() => {
   const max_width = 1000;
   const min_width = 250;
   const width_per_bin = 25;
-  let total_width = Math.max(min_width, width_per_bin * number_of_bins); // plot should have a width of at least 250px
+  let total_width = Math.max(min_width, width_per_bin * channel.number_of_bins); // plot should have a width of at least 250px
   total_width = Math.min(total_width, max_width); // plot should have a width of at most 1000px
-  return total_width / number_of_bins;
+  return total_width / channel.number_of_bins;
 });
 
 const x_ticks = [
-  ...Array(number_of_bins + 1)
+  ...Array(channel.number_of_bins + 1)
     .fill(0)
     .map((_, i) => i * bin_width.value),
 ];
 const xaxis_path = axis_path(
   y_offset,
   total_stacked_plot_offset,
-  bin_width.value * number_of_bins + 100,
+  bin_width.value * channel.number_of_bins + 100,
   x_ticks,
   true,
   true
@@ -115,7 +113,7 @@ const xaxis_path = axis_path(
 const xaxis_path_ratio = axis_path(
   y_offset,
   total_ratio_offset,
-  bin_width.value * number_of_bins + 100,
+  bin_width.value * channel.number_of_bins + 100,
   x_ticks,
   true,
   true
@@ -219,8 +217,8 @@ const yaxis_path_ratio = computed(() => {
     <h3
       :style="
         'width: ' +
-        (200 + bin_width * number_of_bins) +
-        'px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
+        (200 + bin_width * channel.number_of_bins) +
+        'px; overflow: hidden; white-space: nowrap; text-align: center; text-overflow: ellipsis; display: inline-block;'
       "
       :title="channel.title"
     >
@@ -228,7 +226,7 @@ const yaxis_path_ratio = computed(() => {
     </h3>
     <svg
       height="500"
-      :width="bin_width * number_of_bins + 300"
+      :width="bin_width * channel.number_of_bins + 300"
       :id="'svg_' + name + workspace_store.name + channel.name"
     >
       <template v-for="bin in bins" :key="bin">
@@ -287,7 +285,7 @@ const yaxis_path_ratio = computed(() => {
         :y1="total_ratio_offset - yscale_ratio * (1 - y_ticks_ratio[0])"
         :y2="total_ratio_offset - yscale_ratio * (1 - y_ticks_ratio[0])"
         :x1="x_offset"
-        :x2="x_offset + bin_width * number_of_bins"
+        :x2="x_offset + bin_width * channel.number_of_bins"
       />
       <text
         v-for="bin in bins"
@@ -330,12 +328,12 @@ const yaxis_path_ratio = computed(() => {
       <YAxisLabel :x="-410" :y="50">Data/Pred.</YAxisLabel>
       <!-- legend, data needs a separate entry -->
       <DataPoint
-        :x="bin_width * number_of_bins + 115 + 10"
+        :x="bin_width * channel.number_of_bins + 115 + 10"
         :nominal="400 - workspace_store.number_of_processes * 25 - 75"
         :uncertainty="10"
       />
       <text
-        :x="bin_width * number_of_bins + 145"
+        :x="bin_width * channel.number_of_bins + 145"
         :y="400 - workspace_store.number_of_processes * 25 - 70"
       >
         data
@@ -345,7 +343,7 @@ const yaxis_path_ratio = computed(() => {
         :key="process"
         :size="20"
         :color="workspace_store.colors[process]"
-        :x="bin_width * number_of_bins + 115"
+        :x="bin_width * channel.number_of_bins + 115"
         :y="
           400 -
           workspace_store.number_of_processes * 25 +
