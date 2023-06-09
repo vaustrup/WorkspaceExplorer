@@ -218,6 +218,48 @@ const down_variation = computed(() => {
         <tspan dy="-8px">{{ number_of_zeroes }}</tspan>
       </text>
       <YAxisLabel :x="-175" :y="50">Number of events per bin</YAxisLabel>
+      <line
+        :x1="100 + channel.number_of_bins * bin_width + 10"
+        :y1="350 - 60"
+        :x2="100 + channel.number_of_bins * bin_width + 30"
+        :y2="350 - 60"
+        stroke="black"
+      />
+      <text
+        :x="100 + channel.number_of_bins * bin_width + 40"
+        :y="350 - 60"
+        dominant-baseline="middle"
+      >
+        nominal pre-fit
+      </text>
+      <line
+        :x1="100 + channel.number_of_bins * bin_width + 10"
+        :y1="350 - 40"
+        :x2="100 + channel.number_of_bins * bin_width + 30"
+        :y2="350 - 40"
+        stroke="blue"
+      />
+      <text
+        :x="100 + channel.number_of_bins * bin_width + 40"
+        :y="350 - 40"
+        dominant-baseline="middle"
+      >
+        +1&#963; variation
+      </text>
+      <line
+        :x1="100 + channel.number_of_bins * bin_width + 10"
+        :y1="350 - 20"
+        :x2="100 + channel.number_of_bins * bin_width + 30"
+        :y2="350 - 20"
+        stroke="red"
+      />
+      <text
+        :x="100 + channel.number_of_bins * bin_width + 40"
+        :y="350 - 20"
+        dominant-baseline="middle"
+      >
+        -1&#963; variation
+      </text>
     </svg>
     <DownloadHelper
       :svg_id="
