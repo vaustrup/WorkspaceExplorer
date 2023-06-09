@@ -230,27 +230,30 @@ export const useChannelStore = function (id: number, channel: string) {
       pulleffects(): (process_name: string, bin: number) => number {
         return (process_name: string, bin: number): number => {
           let factor = 1.0;
+          const sample = this.samples.find((s) => s.name === process_name);
+          if (!sample) {
+            console.log('Could not find sample with name.');
+            return 1;
+          }
+          const nominal_yields = sample.data[bin];
+          const modified_yields = this.modifier_yields[process_name];
+          let modifier_index = 0;
           for (const modifier_name of this.workspace_store.nps.labels) {
             // need to filter out lumi, staterror, normfactor
             const modifier_type =
               this.modifier_types[process_name][modifier_name];
-            if (modifier_type === undefined) continue;
-            if (modifier_type === 'lumi') continue;
-            if (modifier_type === 'staterror') continue;
-            if (modifier_type === 'normfactor') continue;
-
-            const sample = this.samples.find((s) => s.name === process_name);
-            if (!sample) {
-              console.log('Could not find sample with name.');
-              continue;
+            if (
+              modifier_type !== undefined &&
+              modifier_type !== 'lumi' &&
+              modifier_type !== 'staterror' &&
+              modifier_type !== 'normfactor'
+            ) {
+              factor *=
+                1 +
+                this.workspace_store.nps.bestfit[modifier_index] *
+                  (modified_yields[modifier_name]['up'][bin] / nominal_yields);
             }
-            const modifier_index =
-              this.workspace_store.nps.labels.indexOf(modifier_name);
-            factor *=
-              1 +
-              this.workspace_store.nps.bestfit[modifier_index] *
-                (this.modifier_yields[process_name][modifier_name]['up'][bin] /
-                  sample.data[bin]);
+            modifier_index += 1;
           }
           return factor;
         };
