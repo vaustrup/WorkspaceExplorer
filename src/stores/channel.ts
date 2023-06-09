@@ -229,14 +229,14 @@ export const useChannelStore = function (id: number, channel: string) {
       },
       pulleffects(): (process_name: string, bin: number) => number {
         return (process_name: string, bin: number): number => {
-          let factor = 1.0;
           const sample = this.samples.find((s) => s.name === process_name);
           if (!sample) {
             console.log('Could not find sample with name.');
             return 1;
           }
-          const nominal_yields = sample.data[bin];
+          const inverse_nominal_yields = 1 / sample.data[bin];
           const modified_yields = this.modifier_yields[process_name];
+          let factor = 1.0;
           let modifier_index = 0;
           for (const modifier_name of this.workspace_store.nps.labels) {
             // need to filter out lumi, staterror, normfactor
@@ -251,7 +251,8 @@ export const useChannelStore = function (id: number, channel: string) {
               factor *=
                 1 +
                 this.workspace_store.nps.bestfit[modifier_index] *
-                  (modified_yields[modifier_name]['up'][bin] / nominal_yields);
+                  modified_yields[modifier_name]['up'][bin] *
+                  inverse_nominal_yields;
             }
             modifier_index += 1;
           }
@@ -310,7 +311,7 @@ export const useChannelStore = function (id: number, channel: string) {
         channel.name = this.name;
         channel.data = this.observations;
         channel.content = [];
-        const bin_number = this.samples[0].data.length;
+        const bin_number = this.number_of_bins;
         for (let i_bin = 0; i_bin < bin_number; i_bin++) {
           const processes = [] as IStackedProcess[];
           let previous_high = 0;
@@ -342,7 +343,7 @@ export const useChannelStore = function (id: number, channel: string) {
         channel.name = this.name;
         channel.data = this.observations;
         channel.content = [];
-        const bin_number = this.samples[0].data.length;
+        const bin_number = this.number_of_bins;
         for (let i_bin = 0; i_bin < bin_number; i_bin++) {
           const processes = [] as IStackedProcess[];
           let previous_high = 0;

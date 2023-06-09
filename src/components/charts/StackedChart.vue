@@ -40,47 +40,34 @@ const stacked_data = computed(() => {
 
 const maximum = computed(() => {
   let max = 0;
-  for (let i_bin = 0; i_bin < channel.number_of_bins; i_bin++) {
-    const high_value =
-      stacked_data.value.content[i_bin][
-        workspace_store.process_names.length - 1
-      ].high;
-    if (max < high_value) {
-      max = high_value;
-    }
-    const data_value = stacked_data.value.data[i_bin];
-    if (max < data_value) {
-      max = data_value;
-    }
+  for (const yields of stacked_data.value.content) {
+    max = Math.max(max, yields[yields.length - 1].high);
   }
-  return max;
+  return Math.max(max, ...stacked_data.value.data);
 });
 
 const maximum_deviation_ratio = computed(() => {
   // return maximum deviation from unity in ratio
-  let max = 0;
-  for (let i_bin = 0; i_bin < channel.number_of_bins; i_bin++) {
-    max = Math.max(
-      max,
+  return Math.max(
+    ...stacked_data.value.data.map((x, i) =>
       Math.abs(
         1 -
-          (stacked_data.value.data[i_bin] +
-            stacked_data.value.data[i_bin] ** 0.5) /
-            stacked_data.value.content[i_bin][
-              workspace_store.process_names.length - 1
-            ].high
-      ),
-      Math.abs(
-        1 -
-          (stacked_data.value.data[i_bin] -
-            stacked_data.value.data[i_bin] ** 0.5) /
-            stacked_data.value.content[i_bin][
-              workspace_store.process_names.length - 1
+          (x + x ** 0.5) /
+            stacked_data.value.content[i][
+              workspace_store.number_of_processes - 1
             ].high
       )
-    );
-  }
-  return max;
+    ),
+    ...stacked_data.value.data.map((x, i) =>
+      Math.abs(
+        1 -
+          (x - x ** 0.5) /
+            stacked_data.value.content[i][
+              workspace_store.number_of_processes - 1
+            ].high
+      )
+    )
+  );
 });
 
 const yscale = computed(() => {
