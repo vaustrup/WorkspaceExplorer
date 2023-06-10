@@ -45,29 +45,16 @@ const stacked_data = computed(() => {
 });
 
 const maximum = computed(() => {
-  let max = 0;
-  for (let i_bin = 0; i_bin < stacked_data.value.content.length; i_bin++) {
-    const nominal =
-      stacked_data.value.content[i_bin][
-        workspace_store.process_names.length - 1
-      ].high;
-    if (max < nominal) {
-      max = nominal;
-    }
-    const up = nominal + up_variation.value[i_bin];
-    if (max < up) {
-      max = up;
-    }
-    const down = nominal + down_variation.value[i_bin];
-    if (max < down) {
-      max = down;
-    }
-    const data_value = stacked_data.value.data[i_bin];
-    if (max < data_value) {
-      max = data_value;
-    }
-  }
-  return max;
+  return Math.max(
+    ...stacked_data.value.content.map((x, i) =>
+      Math.max(
+        x[workspace_store.number_of_processes - 1].high,
+        x[workspace_store.number_of_processes - 1].high +
+          Math.max(up_variation.value[i], down_variation.value[i]),
+        stacked_data.value.data[i]
+      )
+    )
+  );
 });
 
 const yscale = computed(() => {

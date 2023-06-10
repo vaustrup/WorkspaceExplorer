@@ -148,6 +148,7 @@ export interface IWorkspaceGetters {
   process_names: string[];
   modifier_names: string[];
   normfactors: { [key: string]: INormFactor };
+  number_of_processes: number;
 }
 
 export interface IWorkspaceActions {

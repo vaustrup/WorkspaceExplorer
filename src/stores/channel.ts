@@ -26,24 +26,23 @@ export const useChannelStore = function (id: number, channel: string) {
       normfactor_names(): string[] {
         const factors: string[] = [];
         for (const sample of this.samples) {
-          for (const modifier of sample.modifiers) {
-            if (modifier.type !== 'normfactor') {
-              continue;
-            }
-            factors.push(modifier.name);
-          }
+          factors.push(
+            ...sample.modifiers
+              .filter((modifier) => modifier.type === 'normfactor')
+              .map((modifier) => modifier.name)
+              .filter((name) => !factors.includes(name))
+          );
         }
-        return [...new Set(factors)];
+        return factors;
       },
       modifier_names(): string[] {
         const names: string[] = [];
         for (const sample of this.samples) {
-          for (const modifier of sample.modifiers) {
-            if (names.includes(modifier.name)) {
-              continue;
-            }
-            names.push(modifier.name);
-          }
+          names.push(
+            ...sample.modifiers
+              .filter((modifier) => !names.includes(modifier.name))
+              .map((modifier) => modifier.name)
+          );
         }
         return names;
       },
@@ -264,16 +263,16 @@ export const useChannelStore = function (id: number, channel: string) {
       ): (process_name: string, postfit: boolean) => number {
         // returns the overall yield of a given process
         return (process_name: string, postfit: boolean): number => {
-          let yields = 0;
-          for (const p of state.samples) {
-            if (p.name !== process_name) {
-              continue;
-            }
-            yields =
-              p.data.reduce((pv, cv) => pv + cv, 0) *
-              this.normfactor(p, postfit);
+          const p = state.samples.find((s) => {
+            return s.name === process_name;
+          });
+          if (!p) {
+            console.log('Could not find process ' + process_name);
+            return 0;
           }
-          return yields;
+          return (
+            p.data.reduce((pv, cv) => pv + cv, 0) * this.normfactor(p, postfit)
+          );
         };
       },
       stacked_data(): IStackedChannel {
@@ -295,11 +294,11 @@ export const useChannelStore = function (id: number, channel: string) {
       },
       normalized_stacked_data(): IStackedChannel {
         // returns a stack of overall relative yields of the different processes in the different channels
-        let total_yield = 0;
         const normalized_stacked_data = this.stacked_data;
-        for (const p of normalized_stacked_data.processes) {
-          total_yield += p.high - p.low;
-        }
+        const total_yield =
+          this.stacked_data.processes[
+            this.workspace_store.number_of_processes - 1
+          ].high;
         for (const p of normalized_stacked_data.processes) {
           p.high = (p.high / total_yield) * 100;
           p.low = (p.low / total_yield) * 100;
@@ -351,7 +350,6 @@ export const useChannelStore = function (id: number, channel: string) {
             const process = {} as IStackedProcess;
             process.name = process_name;
             process.low = previous_high;
-            // find process_index from name in samples
             const sample = this.samples.find((s) => {
               return s.name === process_name;
             });

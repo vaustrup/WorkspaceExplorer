@@ -71,11 +71,14 @@ export const useWorkspaceStore = function (id: number) {
         return process_yields;
       },
       normfactors(state) {
-        let normfactor_names = [];
+        const normfactor_names: string[] = [];
         for (const channel of state.channels) {
-          normfactor_names.push(...channel.normfactor_names);
+          normfactor_names.push(
+            ...channel.normfactor_names.filter(
+              (name) => !normfactor_names.includes(name)
+            )
+          );
         }
-        normfactor_names = [...new Set(normfactor_names)];
 
         const factors = {} as { [key: string]: INormFactor };
         for (const normfactor_name of normfactor_names) {
@@ -115,9 +118,11 @@ export const useWorkspaceStore = function (id: number) {
       modifier_names(): string[] {
         const names = [] as string[];
         for (const channel of this.channels) {
-          names.push(...channel.modifier_names);
+          names.push(
+            ...channel.modifier_names.filter((name) => !names.includes(name))
+          );
         }
-        return [...new Set(names)];
+        return names;
       },
       number_of_processes(): number {
         return this.process_names.length;

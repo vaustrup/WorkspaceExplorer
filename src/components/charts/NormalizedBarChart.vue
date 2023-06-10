@@ -30,9 +30,9 @@ const offset =
 
 // create strings for path of axes
 const y_ticks = [
-  ...Array(workspace_store.channels.length)
-    .fill(0)
-    .map((_, i) => (i + 0.5) * bar_height + (i + 1) * padding),
+  ...workspace_store.channels.map(
+    (_, i) => (i + 0.5) * bar_height + (i + 1) * padding
+  ),
 ];
 const yaxis_path = axis_path(0, 0, offset, y_ticks, false, true);
 
