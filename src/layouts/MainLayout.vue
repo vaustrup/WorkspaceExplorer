@@ -1,8 +1,14 @@
 <template>
   <q-layout view="lHh Lpr lff">
     <q-header>
-      <q-toolbar class="bg-blue-grey-8">
-        <q-toolbar-title> WorkspaceExplorer </q-toolbar-title>
+      <q-toolbar class="bg-blue-grey-6">
+        <q-toolbar-title>
+            <q-img
+              src="/logo_text_white.png"
+              style="height: 3em; width: 10.25em"
+              fit="fill"
+            />
+        </q-toolbar-title>
 
         <a href="https://github.com/vaustrup/WorkspaceExplorer">
           <q-img
