@@ -17,6 +17,7 @@ const props = defineProps<{
 const workspace_store = useWorkspaceStore(props.id)();
 
 const height_per_entry = 25;
+const half_height_per_entry = 0.5 * height_per_entry;
 
 const height = computed(() => {
   return workspace_store.nps.labels.length * height_per_entry + 100;
@@ -25,15 +26,17 @@ const height = computed(() => {
 const sigma_width = 125;
 const two_sigma_width = 2 * sigma_width;
 const four_sigma_width = 4 * sigma_width;
+const half_sigma_width = 0.5 * sigma_width;
 const ylabel_width = 250;
 const ylabel_offset = 10;
-const width = four_sigma_width + ylabel_width + 2 * ylabel_offset;
+const two_sigma_plus_offset = two_sigma_width + ylabel_offset;
+const width = 2 * two_sigma_plus_offset + ylabel_width;
 
 const number_of_ticks = 9;
 const x_ticks = [
   ...Array(number_of_ticks)
     .fill(0)
-    .map((_, i) => (i * sigma_width) / 2),
+    .map((_, i) => i * half_sigma_width),
 ];
 const xaxis_path = axis_path(
   ylabel_offset,
@@ -67,8 +70,8 @@ const xaxis_path = axis_path(
           fill="green"
         />
         <line
-          :x1="two_sigma_width + ylabel_offset"
-          :x2="two_sigma_width + ylabel_offset"
+          :x1="two_sigma_plus_offset"
+          :x2="two_sigma_plus_offset"
           y1="0"
           :y2="height - 100"
           stroke="black"
@@ -80,8 +83,8 @@ const xaxis_path = axis_path(
         >
           <PullChartEntry
             :id="id"
-            :y="np_index * height_per_entry + height_per_entry / 2"
-            :x_offset="two_sigma_width + ylabel_offset"
+            :y="np_index * height_per_entry + half_height_per_entry"
+            :x_offset="two_sigma_plus_offset"
             :sigma_width="sigma_width"
             :np_index="np_index"
             :isnothighlighted="!ishighlighted(np_index)"
@@ -91,13 +94,13 @@ const xaxis_path = axis_path(
         <text
           v-for="i_tick in number_of_ticks"
           :key="'tick' + i_tick"
-          :x="ylabel_offset + ((i_tick - 1) * sigma_width) / 2"
+          :x="ylabel_offset + (i_tick - 1) * half_sigma_width"
           :y="height - 80"
           text-anchor="middle"
         >
           {{ (i_tick - 5) / 2 }}
         </text>
-        <XAxisLabel :x="ylabel_offset + two_sigma_width" :y="height - 60">
+        <XAxisLabel :x="two_sigma_plus_offset" :y="height - 60">
           (&#920;&#770; - &#920;)/&#916;&#920;
         </XAxisLabel>
       </g>

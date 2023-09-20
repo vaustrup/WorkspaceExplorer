@@ -35,13 +35,15 @@ function startDrag(event: MouseEvent): void {
   start_x.value = event.clientX;
 }
 
+const two_sigma_width = 2 * props.sigma_width;
+
 function drag(event: MouseEvent): void {
   if (!is_dragging.value) return;
   const delta = event.clientX - start_x.value;
   const new_position = x_position.value + delta;
   x_position.value = Math.max(
-    props.x_offset - 2 * props.sigma_width,
-    Math.min(props.x_offset + 2 * props.sigma_width, new_position)
+    props.x_offset - two_sigma_width,
+    Math.min(props.x_offset + two_sigma_width, new_position)
   );
   workspace_store.nps.bestfit[props.np_index] =
     (x_position.value - props.x_offset) / props.sigma_width;
@@ -74,13 +76,13 @@ function endDrag(): void {
     :x1="
       Math.max(
         x_position - uncertainty * sigma_width,
-        x_offset - 2 * sigma_width
+        x_offset - two_sigma_width
       )
     "
     :x2="
       Math.min(
         x_position + uncertainty * sigma_width,
-        x_offset + 2 * sigma_width
+        x_offset + two_sigma_width
       )
     "
     :y1="y"
@@ -89,7 +91,7 @@ function endDrag(): void {
     :class="{ isnothighlighted: isnothighlighted }"
   />
   <rect
-    :x="x_offset - 2 * sigma_width"
+    :x="x_offset - two_sigma_width"
     :y="y - 12.5"
     :height="25"
     :width="4 * sigma_width"

@@ -4,7 +4,7 @@ import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import { linear_scale, axis_path } from 'src/utils/plots';
 import YAxisLabel from 'src/components/charts/YAxisLabel.vue';
-import DataPoint from 'src/components/charts/DataPoint.vue';
+import SystematicChartContent from 'src/components/charts/SystematicChartContent.vue';
 
 const props = defineProps<{
   id: number;
@@ -17,6 +17,7 @@ const workspace_store = useWorkspaceStore(props.id)();
 const channel = workspace_store.channels[props.channel_index];
 
 const bins = Array.from({ length: channel.number_of_bins }, (e, i) => i);
+
 const bin_width = computed(() => {
   const max_width = 1000;
   const min_width = 250;
@@ -24,6 +25,10 @@ const bin_width = computed(() => {
   let total_width = Math.max(min_width, width_per_bin * channel.number_of_bins); // plot should have a width of at least 250px
   total_width = Math.min(total_width, max_width); // plot should have a width of at most 1000px
   return total_width / channel.number_of_bins;
+});
+
+const width = computed(() => {
+  return channel.number_of_bins * bin_width.value;
 });
 
 const x_ticks = [
@@ -133,7 +138,7 @@ const down_variation = computed(() => {
     <h3
       :style="
         'width: ' +
-        (200 + bin_width * channel.number_of_bins) +
+        (200 + width) +
         'px; overflow: hidden; text-align: center; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
       "
     >
@@ -141,7 +146,7 @@ const down_variation = computed(() => {
     </h3>
     <svg
       height="400"
-      :width="bin_width * channel.number_of_bins + 300"
+      :width="width + 300"
       :id="
         'svg_systematicchart' +
         workspace_store.name +
@@ -150,31 +155,14 @@ const down_variation = computed(() => {
       "
     >
       <template v-for="bin in bins" :key="bin">
-        <line
-          :x1="100 + bin * bin_width"
-          :y1="350 - yscale * nominal(bin)"
-          :x2="100 + (bin + 1) * bin_width"
-          :y2="350 - yscale * nominal(bin)"
-          stroke="black"
-        />
-        <line
-          :x1="100 + bin * bin_width"
-          :y1="350 - yscale * (nominal(bin) + up_variation[bin])"
-          :x2="100 + (bin + 1) * bin_width"
-          :y2="350 - yscale * (nominal(bin) + up_variation[bin])"
-          stroke="blue"
-        />
-        <line
-          :x1="100 + bin * bin_width"
-          :y1="350 - yscale * (nominal(bin) + down_variation[bin])"
-          :x2="100 + (bin + 1) * bin_width"
-          :y2="350 - yscale * (nominal(bin) + down_variation[bin])"
-          stroke="red"
-        />
-        <DataPoint
-          :x="bin_width * (bin + 0.5) + 100"
-          :nominal="350 - yscale * stacked_data.data[bin]"
-          :uncertainty="yscale * stacked_data.data[bin] ** 0.5"
+        <SystematicChartContent
+          :bin="bin"
+          :bin_width="bin_width"
+          :data="stacked_data.data[bin]"
+          :yscale="yscale"
+          :nominal="nominal(bin)"
+          :up_variation="up_variation[bin]"
+          :down_variation="down_variation[bin]"
         />
       </template>
       <path fill="none" stroke="#000" :d="xaxis_path"></path>
@@ -206,45 +194,33 @@ const down_variation = computed(() => {
       </text>
       <YAxisLabel :x="-175" :y="50">Number of events per bin</YAxisLabel>
       <line
-        :x1="100 + channel.number_of_bins * bin_width + 10"
+        :x1="100 + width + 10"
         :y1="350 - 60"
-        :x2="100 + channel.number_of_bins * bin_width + 30"
+        :x2="100 + width + 30"
         :y2="350 - 60"
         stroke="black"
       />
-      <text
-        :x="100 + channel.number_of_bins * bin_width + 40"
-        :y="350 - 60"
-        dominant-baseline="middle"
-      >
+      <text :x="100 + width + 40" :y="350 - 60" dominant-baseline="middle">
         nominal pre-fit
       </text>
       <line
-        :x1="100 + channel.number_of_bins * bin_width + 10"
+        :x1="100 + width + 10"
         :y1="350 - 40"
-        :x2="100 + channel.number_of_bins * bin_width + 30"
+        :x2="100 + width + 30"
         :y2="350 - 40"
         stroke="blue"
       />
-      <text
-        :x="100 + channel.number_of_bins * bin_width + 40"
-        :y="350 - 40"
-        dominant-baseline="middle"
-      >
+      <text :x="100 + width + 40" :y="350 - 40" dominant-baseline="middle">
         +1&#963; variation
       </text>
       <line
-        :x1="100 + channel.number_of_bins * bin_width + 10"
+        :x1="100 + width + 10"
         :y1="350 - 20"
-        :x2="100 + channel.number_of_bins * bin_width + 30"
+        :x2="100 + width + 30"
         :y2="350 - 20"
         stroke="red"
       />
-      <text
-        :x="100 + channel.number_of_bins * bin_width + 40"
-        :y="350 - 20"
-        dominant-baseline="middle"
-      >
+      <text :x="100 + width + 40" :y="350 - 20" dominant-baseline="middle">
         -1&#963; variation
       </text>
     </svg>

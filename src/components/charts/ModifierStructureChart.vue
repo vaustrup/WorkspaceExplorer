@@ -64,6 +64,10 @@ const ylabel_length = computed(() => {
   return label_length(workspace_store.process_names);
 });
 
+const ylabel_length_plus_offset = computed(() => {
+  return ylabel_length.value + label_offset;
+});
+
 const legend_height = computed(() => {
   return size + padding;
 });
@@ -178,7 +182,7 @@ const width = computed(() => {
                   :fill="colors[modifier_type_name]"
                   :height="size"
                   :width="size"
-                  :x="modifier_type_index * 200 + ylabel_length + label_offset"
+                  :x="modifier_type_index * 200 + ylabel_length_plus_offset"
                   y="0"
                 />
                 <text
@@ -210,9 +214,7 @@ const width = computed(() => {
                     :fill="colors[modifier_type_name]"
                     :height="size"
                     :width="size"
-                    :x="
-                      modifier_type_index * 200 + ylabel_length + label_offset
-                    "
+                    :x="modifier_type_index * 200 + ylabel_length_plus_offset"
                     y="0"
                     :class="{
                       isnothighlighted:

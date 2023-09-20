@@ -19,11 +19,12 @@ const channel = workspace_store.channels[props.channel_index];
 
 // plotting style
 const radius = 100;
+const double_radius = 2 * radius;
 
 // the height of the plot should be at least the diameter of the pie chart
 // but it also has to be large enough to contain all legend entries
 const height = computed(() => {
-  return Math.max(2 * radius, 25 * workspace_store.number_of_processes);
+  return Math.max(double_radius, 25 * workspace_store.number_of_processes);
 });
 </script>
 
@@ -61,7 +62,7 @@ const height = computed(() => {
         :key="process.name"
         :size="20"
         :color="workspace_store.colors[process.name]"
-        :x="2 * radius + 50"
+        :x="double_radius + 50"
         :y="25 * process_index"
         :isnothighlighted="!ishighlighted(process_index)"
         :title="workspace_store.process_titles[process.name]"

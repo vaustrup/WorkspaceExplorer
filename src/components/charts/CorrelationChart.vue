@@ -35,9 +35,11 @@ const correlated_nps = computed(() => {
     index1 < workspace_store.fitresults.correlations.length - 1;
     index1++
   ) {
+    const correlations_with_np =
+      workspace_store.fitresults.correlations[index1];
     for (
       let index2 = index1 + 1;
-      index2 < workspace_store.fitresults.correlations[index1].length;
+      index2 < correlations_with_np.length;
       index2++
     ) {
       // correlation to itself is always 1
@@ -45,10 +47,7 @@ const correlated_nps = computed(() => {
         continue;
       }
       // only show NPs with a correlation coefficient higher than the threshold wrt to at least one other NP
-      if (
-        Math.abs(workspace_store.fitresults.correlations[index1][index2]) <
-        correlation_threshold
-      ) {
+      if (Math.abs(correlations_with_np[index2]) < correlation_threshold) {
         continue;
       }
       // we need to explicitly check whether the indices have been added to the array before
@@ -65,8 +64,11 @@ const correlated_nps = computed(() => {
 });
 
 const size = 25;
+const correlated_nps_size = correlated_nps.value.length * size;
+const half_size = 0.5 * size;
 const label_size = 250;
 const label_offset = 10;
+const label_size_plus_offset = label_size + label_offset;
 const zlabel_size = 40;
 const height =
   correlated_nps.value.length * size + label_size + 2 * label_offset;
@@ -102,7 +104,7 @@ const z_ticks = [
     .map((_, i) => i * (z_height / (ztick.length - 1))),
 ];
 const zaxis_path = axis_path(
-  label_size + label_offset * 3 + correlated_nps.value.length * size + size,
+  label_size + label_offset * 3 + correlated_nps_size + size,
   0,
   z_height,
   z_ticks,
@@ -141,7 +143,7 @@ const zaxis_path = axis_path(
             :fill-opacity="get_opacity(np1_index, np2_index)"
             :height="size"
             :width="size"
-            :x="size * index2 + label_size + label_offset"
+            :x="size * index2 + label_size_plus_offset"
             :y="size * index1"
             stroke-opacity="0"
             stroke="black"
@@ -170,7 +172,7 @@ const zaxis_path = axis_path(
           :key="'ylabel' + np1_index"
           :x="label_size"
           text-anchor="end"
-          :y="size * index1 + 0.5 * size"
+          :y="size * index1 + half_size"
           dominant-baseline="middle"
           :class="{
             isnothighlighted:
@@ -183,9 +185,9 @@ const zaxis_path = axis_path(
         <text
           v-for="(np2_index, index2) in correlated_nps"
           :key="'xlabel' + np2_index"
-          :x="-correlated_nps.length * size - label_offset"
+          :x="-correlated_nps_size - label_offset"
           text-anchor="end"
-          :y="label_size + label_offset + size * index2 + 0.5 * size"
+          :y="label_size_plus_offset + size * index2 + half_size"
           dominant-baseline="middle"
           transform="rotate(-90)"
           :class="{
@@ -197,7 +199,7 @@ const zaxis_path = axis_path(
           {{ workspace_store.fitresults.labels[np2_index] }}
         </text>
         <rect
-          :x="label_size + label_offset * 3 + correlated_nps.length * size"
+          :x="label_size_plus_offset * 3 + correlated_nps_size"
           y="0"
           :width="size"
           :height="correlated_nps.length * size"
@@ -207,9 +209,7 @@ const zaxis_path = axis_path(
         <text
           v-for="(tick, index) of ztick"
           :key="'ztick' + tick"
-          :x="
-            label_size + label_offset * 4 + correlated_nps.length * size + size
-          "
+          :x="label_size_plus_offset * 4 + correlated_nps_size + size"
           :y="(index * z_height) / (ztick.length - 1)"
           dominant-baseline="middle"
         >
