@@ -127,29 +127,41 @@ export const useWorkspaceStore = function (id: number) {
       },
     },
     actions: {
-      load_workspace_from_local_file(file: File): void {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (reader.result === null) {
-            return;
-          }
-          try {
-            const workspace: IWorkspace = JSON.parse(reader.result.toString());
-            this.workspace = workspace;
-            this.name = file.name;
-          } catch (e) {
-            console.log(e);
-            Notify.create({
-              message:
-                'Error when parsing workspace. Is this an actual JSON file?',
-              color: 'negative',
-              icon: 'report_problem',
-              position: 'top',
-            });
-            return;
-          }
-        };
-        reader.readAsText(file);
+      get_file_contents(file: File): Promise<void> {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (reader.result === null) {
+              return;
+            }
+            try {
+              const workspace: IWorkspace = JSON.parse(
+                reader.result.toString()
+              );
+              this.workspace = workspace;
+              this.name = file.name;
+              console.log(this.name);
+            } catch (e) {
+              console.log(e);
+              Notify.create({
+                message:
+                  'Error when parsing workspace. Is this an actual JSON file?',
+                color: 'negative',
+                icon: 'report_problem',
+                position: 'top',
+              });
+              return;
+            }
+            resolve();
+          };
+          reader.onerror = () => {
+            reject();
+          };
+          reader.readAsText(file);
+        });
+      },
+      async load_workspace_from_local_file(file: File): Promise<void> {
+        await this.get_file_contents(file);
         this.loading = false;
         this.create_channel_stores(this.workspace);
       },
