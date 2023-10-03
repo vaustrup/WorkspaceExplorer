@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useWorkspaceStore } from 'src/stores/workspace';
 import DownloadHelper from 'src/components/DownloadHelper.vue';
 import useHighlighted from 'src/composables/useHighlighted';
-import { linear_scale, axis_path } from 'src/utils/plots';
+import { linear_scale, axis_path, number_of_zeroes } from 'src/utils/plots';
 import LegendEntry from 'src/components/charts/LegendEntry.vue';
 import YAxisLabel from 'src/components/charts/YAxisLabel.vue';
 import DataPoint from 'src/components/charts/DataPoint.vue';
@@ -13,70 +13,102 @@ const { highlight, unhighlight, ishighlighted } = useHighlighted();
 const props = defineProps<{
   id: number;
   channel_index: number;
+  postfit: boolean;
 }>();
 
 const workspace_store = useWorkspaceStore(props.id)();
 
+const name = 'stackedchart' + (props.postfit ? 'postfit' : 'prefit');
 const channel = workspace_store.channels[props.channel_index];
 
-const number_of_bins = channel.samples[0].data.length;
+const bins = Array.from({ length: channel.number_of_bins }, (e, i) => i);
 
-const bins = Array.from({ length: number_of_bins }, (e, i) => i);
+const x_offset = 100;
+const y_offset = 100;
+const stacked_plot_height = 250;
+const total_stacked_plot_offset = y_offset + stacked_plot_height;
+const ratio_height = 80;
+const ratio_offset = 20;
+const total_ratio_offset =
+  total_stacked_plot_offset + ratio_height + ratio_offset;
+
+const stacked_data = computed(() => {
+  return props.postfit
+    ? channel.stacked_data_per_bin_postfit
+    : channel.stacked_data_per_bin;
+});
 
 const maximum = computed(() => {
   let max = 0;
-  for (
-    let i_bin = 0;
-    i_bin < channel.stacked_data_per_bin.content.length;
-    i_bin++
-  ) {
-    const high_value =
-      channel.stacked_data_per_bin.content[i_bin][
-        workspace_store.process_names.length - 1
-      ].high;
-    if (max < high_value) {
-      max = high_value;
-    }
-    const data_value = channel.stacked_data_per_bin.data[i_bin];
-    if (max < data_value) {
-      max = data_value;
-    }
+  for (const yields of stacked_data.value.content) {
+    max = Math.max(max, yields[yields.length - 1].high);
   }
-  return max;
+  return Math.max(max, ...stacked_data.value.data);
 });
 
-const yscale = linear_scale(0, maximum.value, 0, 300);
+const maximum_deviation_ratio = computed(() => {
+  // return maximum deviation from unity in ratio
+  return Math.max(
+    ...stacked_data.value.data.map((x, i) =>
+      Math.abs(
+        1 -
+          (x + x ** 0.5) /
+            stacked_data.value.content[i][
+              workspace_store.number_of_processes - 1
+            ].high
+      )
+    ),
+    ...stacked_data.value.data.map((x, i) =>
+      Math.abs(
+        1 -
+          (x - x ** 0.5) /
+            stacked_data.value.content[i][
+              workspace_store.number_of_processes - 1
+            ].high
+      )
+    )
+  );
+});
+
+const yscale = computed(() => {
+  return linear_scale(0, maximum.value, 0, 300);
+});
 
 const bin_width = computed(() => {
   const max_width = 1000;
   const min_width = 250;
   const width_per_bin = 25;
-  let total_width = Math.max(min_width, width_per_bin * number_of_bins); // plot should have a width of at least 250px
+  let total_width = Math.max(min_width, width_per_bin * channel.number_of_bins); // plot should have a width of at least 250px
   total_width = Math.min(total_width, max_width); // plot should have a width of at most 1000px
-  return total_width / number_of_bins;
+  return total_width / channel.number_of_bins;
 });
 
 const x_ticks = [
-  ...Array(number_of_bins + 1)
+  ...Array(channel.number_of_bins + 1)
     .fill(0)
     .map((_, i) => i * bin_width.value),
 ];
 const xaxis_path = axis_path(
-  100,
-  350,
-  bin_width.value * number_of_bins + 100,
+  y_offset,
+  total_stacked_plot_offset,
+  bin_width.value * channel.number_of_bins + 100,
   x_ticks,
   true,
   true
 );
 
-const number_of_zeroes = computed(() => {
-  return Math.floor(Math.log10(maximum.value));
-});
+const xaxis_path_ratio = axis_path(
+  y_offset,
+  total_ratio_offset,
+  bin_width.value * channel.number_of_bins + 100,
+  x_ticks,
+  true,
+  true
+);
 
 const maximum_normalised = computed(() => {
   // returns the highest value in any of the bins divided by the next smaller power of ten
-  return maximum.value / 10 ** number_of_zeroes.value;
+  return maximum.value / 10 ** number_of_zeroes(maximum.value);
 });
 
 const y_ticks = computed(() => {
@@ -101,32 +133,88 @@ const y_ticks = computed(() => {
 
 const y_tick_positions = computed(() => {
   const max = maximum_normalised.value;
-  let tick_positions = [];
-  for (const tick of y_ticks.value) {
-    tick_positions.push(-(300 / max) * tick);
-  }
-  return tick_positions;
+  return y_ticks.value.map((tick) => -(300 / max) * tick);
 });
 
-const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
+const y_ticks_ratio = computed(() => {
+  const min = Math.max(0, 1 - maximum_deviation_ratio.value);
+  const max = 1 + maximum_deviation_ratio.value;
+  const delta = max - min;
+  const zeroes = number_of_zeroes(delta);
+  const delta_normalised = delta / 10 ** (zeroes + 1);
+  let stepsize = 0.1;
+  if (delta_normalised > 1.0) {
+    stepsize = 1.0;
+  } else if (delta_normalised > 0.6) {
+    stepsize = 0.5;
+  } else if (delta_normalised > 0.4) {
+    stepsize = 0.3;
+  } else if (delta_normalised > 0.2) {
+    stepsize = 0.2;
+  }
+  return [
+    Math.max(0, 1.0 - Math.max(0.1, stepsize * 10 ** (zeroes + 1))),
+    1.0,
+    1.0 + Math.max(0.1, stepsize * 10 ** (zeroes + 1)),
+  ];
+});
+
+const yscale_ratio = computed(() => {
+  return linear_scale(
+    y_ticks_ratio.value[0],
+    y_ticks_ratio.value[2],
+    0,
+    ratio_height
+  );
+});
+
+const y_tick_positions_ratio = computed(() => {
+  const diff: number = y_ticks_ratio.value[2] - y_ticks_ratio.value[0];
+  const x = y_ticks_ratio.value.map(
+    (tick) => -(ratio_height / diff) * (tick - y_ticks_ratio.value[0])
+  );
+  return x;
+});
+
+const yaxis_path = computed(() => {
+  return axis_path(
+    x_offset,
+    total_stacked_plot_offset,
+    40,
+    y_tick_positions.value,
+    false,
+    true
+  );
+});
+
+const yaxis_path_ratio = computed(() => {
+  return axis_path(
+    x_offset,
+    total_ratio_offset,
+    total_ratio_offset - ratio_height,
+    y_tick_positions_ratio.value,
+    false,
+    true
+  );
+});
 </script>
 
 <template>
-  <div class="stackedchart">
+  <div class="name column">
     <h3
       :style="
         'width: ' +
-        (200 + bin_width * number_of_bins) +
-        'px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: inline-block;'
+        (200 + bin_width * channel.number_of_bins) +
+        'px; overflow: hidden; white-space: nowrap; text-align: center; text-overflow: ellipsis; display: inline-block;'
       "
-      :title="workspace_store.channels[channel_index].title"
+      :title="channel.title"
     >
-      {{ workspace_store.channels[channel_index].title }}
+      {{ channel.title }}
     </h3>
     <svg
-      height="400"
-      :width="bin_width * number_of_bins + 300"
-      :id="'svg_stackedchart' + workspace_store.name + channel.name"
+      height="500"
+      :width="bin_width * channel.number_of_bins + 300"
+      :id="'svg_' + name + workspace_store.name + channel.name"
     >
       <template v-for="bin in bins" :key="bin">
         <template
@@ -134,17 +222,16 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
           :key="process_name"
         >
           <rect
-            :x="bin_width * bin + 100"
+            :x="bin_width * bin + x_offset"
             :width="bin_width"
             :y="
-              350 -
-              yscale *
-                channel.stacked_data_per_bin.content[bin][process_index].high
+              total_stacked_plot_offset -
+              yscale * stacked_data.content[bin][process_index].high
             "
             :height="
               yscale *
-              (channel.stacked_data_per_bin.content[bin][process_index].high -
-                channel.stacked_data_per_bin.content[bin][process_index].low)
+              (stacked_data.content[bin][process_index].high -
+                stacked_data.content[bin][process_index].low)
             "
             :fill="workspace_store.colors[process_name]"
             :class="{
@@ -155,17 +242,43 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
           />
         </template>
         <DataPoint
-          :x="bin_width * (bin + 0.5) + 100"
-          :nominal="350 - yscale * channel.stacked_data_per_bin.data[bin]"
-          :uncertainty="yscale * channel.stacked_data_per_bin.data[bin] ** 0.5"
+          :x="bin_width * (bin + 0.5) + x_offset"
+          :nominal="total_stacked_plot_offset - yscale * stacked_data.data[bin]"
+          :uncertainty="yscale * stacked_data.data[bin] ** 0.5"
+        />
+        <DataPoint
+          :x="bin_width * (bin + 0.5) + x_offset"
+          :nominal="
+            total_ratio_offset -
+            yscale_ratio *
+              (stacked_data.data[bin] /
+                stacked_data.content[bin][
+                  workspace_store.process_names.length - 1
+                ].high -
+                y_ticks_ratio[0])
+          "
+          :uncertainty="
+            (yscale_ratio * stacked_data.data[bin] ** 0.5) /
+            stacked_data.content[bin][workspace_store.process_names.length - 1]
+              .high
+          "
         />
       </template>
       <path fill="none" stroke="#000" :d="xaxis_path"></path>
+      <path fill="none" stroke="#000" :d="xaxis_path_ratio"></path>
+      <line
+        stroke="#000"
+        stroke-dasharray="4"
+        :y1="total_ratio_offset - yscale_ratio * (1 - y_ticks_ratio[0])"
+        :y2="total_ratio_offset - yscale_ratio * (1 - y_ticks_ratio[0])"
+        :x1="x_offset"
+        :x2="x_offset + bin_width * channel.number_of_bins"
+      />
       <text
         v-for="bin in bins"
         :key="bin"
-        :x="360"
-        :y="-bin_width * bin - 100 - 0.5 * bin_width"
+        :x="total_ratio_offset + 10"
+        :y="-bin_width * bin - x_offset - 0.5 * bin_width"
         transform="rotate(90)"
         dominant-baseline="middle"
         text-anchor="start"
@@ -173,11 +286,12 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
         bin {{ bin + 1 }}
       </text>
       <path fill="none" stroke="#000" :d="yaxis_path"></path>
+      <path fill="none" stroke="#000" :d="yaxis_path_ratio"></path>
       <text
         v-for="(tick_label, tick_index) in y_ticks"
         :key="tick_label"
         x="90"
-        :y="350 + y_tick_positions[tick_index]"
+        :y="total_stacked_plot_offset + y_tick_positions[tick_index]"
         dominant-baseline="middle"
         text-anchor="end"
       >
@@ -185,17 +299,28 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
       </text>
       <text x="95" y="35" dominant-baseline="middle" text-anchor="end">
         <tspan dy="-0px">x10</tspan>
-        <tspan dy="-8px">{{ number_of_zeroes }}</tspan>
+        <tspan dy="-8px">{{ number_of_zeroes(maximum) }}</tspan>
       </text>
-      <YAxisLabel :x="-175" :y="50">Number of events per bin</YAxisLabel>
+      <text
+        v-for="(tick_label, tick_index) in y_ticks_ratio"
+        :key="tick_label"
+        x="90"
+        :y="total_ratio_offset + y_tick_positions_ratio[tick_index]"
+        dominant-baseline="middle"
+        text-anchor="end"
+      >
+        {{ tick_label }}
+      </text>
+      <YAxisLabel :x="-185" :y="50">Number of events per bin</YAxisLabel>
+      <YAxisLabel :x="-410" :y="50">Data/Pred.</YAxisLabel>
       <!-- legend, data needs a separate entry -->
       <DataPoint
-        :x="bin_width * number_of_bins + 115 + 10"
+        :x="bin_width * channel.number_of_bins + 115 + 10"
         :nominal="400 - workspace_store.number_of_processes * 25 - 75"
         :uncertainty="10"
       />
       <text
-        :x="bin_width * number_of_bins + 145"
+        :x="bin_width * channel.number_of_bins + 145"
         :y="400 - workspace_store.number_of_processes * 25 - 70"
       >
         data
@@ -205,7 +330,7 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
         :key="process"
         :size="20"
         :color="workspace_store.colors[process]"
-        :x="bin_width * number_of_bins + 115"
+        :x="bin_width * channel.number_of_bins + 115"
         :y="
           400 -
           workspace_store.number_of_processes * 25 +
@@ -219,7 +344,7 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
       />
     </svg>
     <DownloadHelper
-      :svg_id="'stackedchart' + workspace_store.name + channel.name"
+      :svg_id="name + workspace_store.name + channel.name"
       :id="id"
     />
   </div>

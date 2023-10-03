@@ -31,6 +31,11 @@ export interface IFitResults {
   labels: string[];
 }
 
+export interface INPs {
+  bestfit: number[];
+  labels: string[];
+}
+
 export interface ITaskResults {
   ready: boolean;
   successful: boolean;
@@ -51,7 +56,7 @@ export interface IModifier {
 
 export interface INormSys {
   hi: number;
-  low: number;
+  lo: number;
 }
 
 export interface IHistoSys {
@@ -76,11 +81,17 @@ export interface IChannelGetters {
   stacked_data: IStackedChannel;
   normalized_stacked_data: IStackedChannel;
   stacked_data_per_bin: IStackedChannelBinwise;
-  yield_of_process: (process_name: string) => number;
+  stacked_data_per_bin_postfit: IStackedChannelBinwise;
+  yield_of_process: (process_name: string, postfit: boolean) => number;
   title: string;
   modifier_names: string[];
   modifier_types: { [key: string]: { [key: string]: string } };
+  modifier_yields: {
+    [key: string]: { [key: string]: { [key: string]: number[] } };
+  };
+  normfactor: (process: IProcess, postfit: boolean) => number;
   normfactor_names: string[];
+  number_of_bins: number;
 }
 
 export interface IChannelActions {
@@ -128,6 +139,7 @@ export interface IWorkspaceState {
   fitresults: IFitResults;
   fitted: boolean;
   fitting: boolean;
+  nps: IFitResults;
   result_id: string;
   channels: (IChannelState & IChannelGetters & IChannelActions)[];
 }
@@ -135,6 +147,8 @@ export interface IWorkspaceState {
 export interface IWorkspaceGetters {
   process_names: string[];
   modifier_names: string[];
+  normfactors: { [key: string]: INormFactor };
+  number_of_processes: number;
 }
 
 export interface IWorkspaceActions {
@@ -165,7 +179,8 @@ export interface IStackedChannelBinwise {
   //               {name: process2, low: low2, high: high2},
   //                ...],
   //              ...
-  //   ]
+  //   ],
+  //   data: data1,
   // }
   name: string;
   content: Array<Array<IStackedProcess>>;
@@ -175,6 +190,7 @@ export interface IStackedChannelBinwise {
 export interface INormFactor {
   name: string;
   fixed: boolean;
+  value: number;
 }
 
 export interface IUncertaintyPerSystematic {

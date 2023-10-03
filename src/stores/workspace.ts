@@ -4,6 +4,7 @@ import { useChannelStore } from 'src/stores/channel';
 import {
   IAnalysis,
   IFitResults,
+  INormFactor,
   ITaskResults,
   IWorkspace,
   IWorkspaceState,
@@ -25,6 +26,7 @@ export const useWorkspaceStore = function (id: number) {
         fitresults: {} as IFitResults,
         fitted: false as boolean,
         fitting: false as boolean,
+        nps: {} as IFitResults,
         result_id: '',
         channels: [] as IChannel[],
       } as IWorkspaceState),
@@ -50,12 +52,10 @@ export const useWorkspaceStore = function (id: number) {
       process_titles(state): { [key: string]: string } {
         const process_titles: { [key: string]: string } = {};
         for (const process_name of this.process_names) {
-          if (process_name in state.process_title_index) {
-            process_titles[process_name] =
-              state.process_title_index[process_name];
-          } else {
-            process_titles[process_name] = process_name;
-          }
+          process_titles[process_name] =
+            process_name in state.process_title_index
+              ? state.process_title_index[process_name]
+              : process_name;
         }
         return process_titles;
       },
@@ -65,19 +65,22 @@ export const useWorkspaceStore = function (id: number) {
           for (const p of c.samples) {
             // set initial yields to zero if key does not exist yet
             process_yields[p.name] =
-              (process_yields[p.name] || 0) + c.yield_of_process(p.name);
+              (process_yields[p.name] || 0) + c.yield_of_process(p.name, false);
           }
         }
         return process_yields;
       },
       normfactors(state) {
-        let normfactor_names = [];
+        const normfactor_names: string[] = [];
         for (const channel of state.channels) {
-          normfactor_names.push(...channel.normfactor_names);
+          normfactor_names.push(
+            ...channel.normfactor_names.filter(
+              (name) => !normfactor_names.includes(name)
+            )
+          );
         }
-        normfactor_names = [...new Set(normfactor_names)];
 
-        const factors = [];
+        const factors = {} as { [key: string]: INormFactor };
         for (const normfactor_name of normfactor_names) {
           const parameter =
             state.workspace.measurements[0].config.parameters.find((p) => {
@@ -89,11 +92,11 @@ export const useWorkspaceStore = function (id: number) {
             );
             continue;
           }
-          const factor = {
+          factors[normfactor_name] = {
             name: normfactor_name,
             fixed: parameter.fixed !== undefined && parameter.fixed,
+            value: parameter.inits ? parameter.inits[0] : 1.0,
           };
-          factors.push(factor);
         }
         return factors;
       },
@@ -105,22 +108,21 @@ export const useWorkspaceStore = function (id: number) {
           process_index++
         ) {
           const process_name = this.process_names[process_index];
-          if (process_name in this.process_color_index) {
-            color_per_process[process_name] =
-              this.process_color_index[process_name];
-          } else {
-            color_per_process[process_name] =
-              color_scheme[process_index % color_scheme.length];
-          }
+          color_per_process[process_name] =
+            process_name in this.process_color_index
+              ? this.process_color_index[process_name]
+              : color_scheme[process_index % color_scheme.length];
         }
         return color_per_process;
       },
       modifier_names(): string[] {
         const names = [] as string[];
         for (const channel of this.channels) {
-          names.push(...channel.modifier_names);
+          names.push(
+            ...channel.modifier_names.filter((name) => !names.includes(name))
+          );
         }
-        return [...new Set(names)];
+        return names;
       },
       number_of_processes(): number {
         return this.process_names.length;
@@ -210,6 +212,7 @@ export const useWorkspaceStore = function (id: number) {
         this.fitting = false;
         this.result_id = '';
         this.fitresults = {} as IFitResults;
+        this.nps = {} as IFitResults;
         this.process_title_index = {} as { [key: string]: string };
         this.process_color_index = {} as { [key: string]: string };
         this.download_urls = {} as { [key: string]: string };
@@ -219,6 +222,10 @@ export const useWorkspaceStore = function (id: number) {
         this.channels = [];
       },
       async get_fit_results(): Promise<void> {
+        if (this.fitted) {
+          this.nps.bestfit = [...this.fitresults.bestfit];
+          return;
+        }
         this.fitting = true;
         const url =
           'https://workspaceexplorerbackend-workspaceexplorerbackend.app.cern.ch/api/v1/workspace';
@@ -244,6 +251,10 @@ export const useWorkspaceStore = function (id: number) {
                 .then((data) => (response_data = data));
               if (response_data.ready) {
                 this.fitresults = response_data.value;
+                this.nps.bestfit = [...this.fitresults.bestfit];
+                this.nps.uncertainty = [...this.fitresults.uncertainty];
+                this.nps.labels = [...this.fitresults.labels];
+                this.nps.correlations = [...this.fitresults.correlations];
                 this.fitted = true;
                 this.fitting = false;
               } else {

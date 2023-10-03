@@ -19,7 +19,7 @@ const workspace_store = useWorkspaceStore(props.id)();
 const height_per_entry = 25;
 
 const height = computed(() => {
-  return workspace_store.fitresults.labels.length * height_per_entry + 100;
+  return workspace_store.nps.labels.length * height_per_entry + 100;
 });
 
 const sigma_width = 125;
@@ -38,7 +38,7 @@ const x_ticks = [
 const xaxis_path = axis_path(
   ylabel_offset,
   height.value - 100,
-  4 * sigma_width + ylabel_offset,
+  four_sigma_width + ylabel_offset,
   x_ticks,
   true,
   true
@@ -75,50 +75,17 @@ const xaxis_path = axis_path(
           stroke-dasharray="8"
         />
         <template
-          v-for="(np, np_index) in workspace_store.fitresults.labels"
+          v-for="(np, np_index) in workspace_store.nps.labels"
           :key="np"
         >
           <PullChartEntry
+            :id="id"
             :y="np_index * height_per_entry + height_per_entry / 2"
             :x_offset="two_sigma_width + ylabel_offset"
             :sigma_width="sigma_width"
-            :np_name="np"
-            :bestfit="workspace_store.fitresults.bestfit[np_index]"
-            :uncertainty="workspace_store.fitresults.uncertainty[np_index]"
+            :np_index="np_index"
             :isnothighlighted="!ishighlighted(np_index)"
           />
-          <!-- transparent rectangle on top of each NP to highlight on mouseover -->
-          <rect
-            :x="-ylabel_width"
-            :y="np_index * height_per_entry"
-            :height="height_per_entry"
-            :width="width"
-            fill-opacity="0"
-            stroke-opacity="0"
-            stroke="black"
-            @mouseover="highlight(np_index)"
-            @mouseleave="unhighlight"
-            :class="{
-              ishighlighted: np_index === highlighted_index,
-            }"
-          >
-            <title>
-              {{
-                'NP' +
-                np +
-                ': ' +
-                round_to_n_digits(
-                  workspace_store.fitresults.bestfit[np_index],
-                  3
-                ) +
-                ' &#177; ' +
-                round_to_n_digits(
-                  workspace_store.fitresults.uncertainty[np_index] * 1000,
-                  3
-                )
-              }}
-            </title>
-          </rect>
         </template>
         <path fill="none" stroke="black" :d="xaxis_path"></path>
         <text
