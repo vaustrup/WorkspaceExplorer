@@ -130,6 +130,7 @@ export interface IWorkspaceState {
   fitting: boolean;
   result_id: string;
   channels: (IChannelState & IChannelGetters & IChannelActions)[];
+  normfactors: { [key: string]: INormFactor };
 }
 
 export interface IWorkspaceGetters {
@@ -175,6 +176,7 @@ export interface IStackedChannelBinwise {
 export interface INormFactor {
   name: string;
   fixed: boolean;
+  value: number;
 }
 
 export interface IUncertaintyPerSystematic {
