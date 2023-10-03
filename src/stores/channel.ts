@@ -26,14 +26,14 @@ export const useChannelStore = function (id: number, channel: string) {
       normfactor_names(): string[] {
         const factors: string[] = [];
         for (const sample of this.samples) {
-          for (const modifier of sample.modifiers) {
-            if (modifier.type !== 'normfactor') {
-              continue;
-            }
-            factors.push(modifier.name);
-          }
+          factors.push(
+            ...sample.modifiers
+              .filter((modifier) => modifier.type === 'normfactor')
+              .map((modifier) => modifier.name)
+              .filter((name) => !factors.includes(name))
+          );
         }
-        return [...new Set(factors)];
+        return factors;
       },
       modifier_names(): string[] {
         const names: string[] = [];
@@ -78,17 +78,33 @@ export const useChannelStore = function (id: number, channel: string) {
         }
         return types;
       },
+      normfactor(state) {
+        return (process: IProcess): number => {
+          let factor = 1.0;
+          for (const key in state.workspace_store.normfactors) {
+            const normfactor = state.workspace_store.normfactors[key];
+            if (
+              !process.modifiers.find((m) => {
+                return m.name === key;
+              })
+            )
+              continue;
+            factor = factor * normfactor.value;
+          }
+          return factor;
+        };
+      },
       yield_of_process(state): (process_name: string) => number {
         // returns the overall yield of a given process
-        return function (process_name: string): number {
-          let yields = 0;
-          for (const p of state.samples) {
-            if (p.name !== process_name) {
-              continue;
-            }
-            yields = p.data.reduce((pv, cv) => pv + cv, 0);
+        return (process_name: string): number => {
+          const p = state.samples.find((s) => {
+            return s.name === process_name;
+          });
+          if (!p) {
+            console.log('Could not find process ' + process_name);
+            return 0;
           }
-          return yields;
+          return p.data.reduce((pv, cv) => pv + cv, 0) * this.normfactor(p);
         };
       },
       stacked_data(): IStackedChannel {
@@ -134,18 +150,16 @@ export const useChannelStore = function (id: number, channel: string) {
             const process = {} as IStackedProcess;
             process.name = process_name;
             process.low = previous_high;
-            // find process_index from name in samples
-            const process_index = this.samples
-              .map(function (e) {
-                return e.name;
-              })
-              .indexOf(process_name);
+
+            const sample = this.samples.find((s) => {
+              return s.name === process_name;
+            });
             // in case a process is not available in this channel, set yields to zero
-            if (process_index === -1) {
+            if (!sample) {
               process.high = previous_high;
             } else {
               process.high =
-                previous_high + this.samples[process_index].data[i_bin];
+                previous_high + sample.data[i_bin] * this.normfactor(sample);
             }
             processes.push(process);
             previous_high = process.high;

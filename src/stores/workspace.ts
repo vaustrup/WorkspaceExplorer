@@ -4,6 +4,7 @@ import { useChannelStore } from 'src/stores/channel';
 import {
   IAnalysis,
   IFitResults,
+  INormFactor,
   ITaskResults,
   IWorkspace,
   IWorkspaceState,
@@ -71,13 +72,16 @@ export const useWorkspaceStore = function (id: number) {
         return process_yields;
       },
       normfactors(state) {
-        let normfactor_names = [];
+        const normfactor_names: string[] = [];
         for (const channel of state.channels) {
-          normfactor_names.push(...channel.normfactor_names);
+          normfactor_names.push(
+            ...channel.normfactor_names.filter(
+              (name) => !normfactor_names.includes(name)
+            )
+          );
         }
-        normfactor_names = [...new Set(normfactor_names)];
 
-        const factors = [];
+        const factors = {} as { [key: string]: INormFactor };
         for (const normfactor_name of normfactor_names) {
           const parameter =
             state.workspace.measurements[0].config.parameters.find((p) => {
@@ -89,11 +93,11 @@ export const useWorkspaceStore = function (id: number) {
             );
             continue;
           }
-          const factor = {
+          factors[normfactor_name] = {
             name: normfactor_name,
             fixed: parameter.fixed !== undefined && parameter.fixed,
+            value: parameter.inits ? parameter.inits[0] : 1.0,
           };
-          factors.push(factor);
         }
         return factors;
       },
