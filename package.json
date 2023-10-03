@@ -9,7 +9,7 @@
     "lint": "eslint --ext .js,.ts,.vue ./",
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
-    "start": "npm install update-notifier && npm install --include=dev && npm install -g @vue/cli && npm install -g @quasar/cli && quasar build && npm install @quasar/cli && node_modules/@quasar/cli/bin/quasar.js serve dist/spa --port 8080"
+    "start": "npm install update-notifier && npm install --include=dev && npm install -g @quasar/cli && quasar build && npm install @quasar/cli && node_modules/@quasar/cli/bin/quasar.js serve dist/spa --port 8080"
   },
   "dependencies": {
     "@quasar/cli": "^2.0.0",
