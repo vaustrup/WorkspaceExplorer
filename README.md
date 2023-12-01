@@ -1,6 +1,4 @@
-# WorkspaceExplorer
-
-![WorkspaceExplorer Logo](public/logo_text_white.png)
+![WorkspaceExplorer Logo](public/logo_text_white_on_gray.png)
 Logo created by Johanna Kraus
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/9f218a2a-d9b9-44ee-b5dc-49a18cc059a1/deploy-status)](https://app.netlify.com/sites/workspaceexplorer/deploys)
