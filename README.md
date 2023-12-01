@@ -1,4 +1,5 @@
-# WorkspaceExplorer
+![WorkspaceExplorer Logo](public/logo_text_white_on_gray.png)
+Logo created by Johanna Kraus
 
 ![WorkspaceExplorer Logo](public/logo_text_white.png)
 Logo created by Johanna Kraus
