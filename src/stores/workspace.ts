@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 import { useStoreIDStore } from 'src/stores/storeid';
 import { useChannelStore } from 'src/stores/channel';
 import {
-  IAnalysis,
   IFitResults,
   INormFactor,
   ITaskResults,
@@ -167,7 +166,7 @@ export const useWorkspaceStore = function (id: number) {
       async load_workspace_from_local_file(file: File): Promise<void> {
         await this.get_file_contents(file);
         this.loading = false;
-        this.create_channel_stores(this.workspace);
+        this.create_channel_stores();
       },
       async load_workspace_from_url(url: string, name?: string): Promise<void> {
         const response = await (await fetch(url)).json();
@@ -178,36 +177,16 @@ export const useWorkspaceStore = function (id: number) {
           this.name = name;
         }
         this.loading = false;
-        this.create_channel_stores(this.workspace);
+        this.create_channel_stores();
       },
-      async load_workspace_from_HEPdata(analysis: IAnalysis): Promise<void> {
-        const response = await (
-          await fetch(analysis.url.replace('landing_page=true', 'format=json'))
-        ).json()
-        let workspace = {} as IWorkspace
-        if (response.file_contents === 'Large text file') {
-          workspace = await (
-            await fetch(
-              analysis.url.replace('landing_page=true', 'view=true')
-            )
-          ).json();
-        }
-        else {
-          workspace = JSON.parse(response.file_contents);
-        }
-        this.workspace = workspace;
-        this.name = analysis.name;
-        this.loading = false;
-        this.create_channel_stores(this.workspace);
-      },
-      create_channel_stores(workspace: IWorkspace): void {
+      create_channel_stores(): void {
         let channel_index = 0;
-        for (const channel of workspace.channels) {
+        for (const channel of this.workspace.channels) {
           const channel_store = useChannelStore(id, channel.name)();
           channel_store.name = channel.name;
           channel_store.samples = channel.samples;
           channel_store.observations =
-            workspace.observations[channel_index].data;
+            this.workspace.observations[channel_index].data;
           this.channels.push(channel_store);
           channel_index += 1;
         }

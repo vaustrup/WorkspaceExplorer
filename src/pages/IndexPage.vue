@@ -22,7 +22,7 @@ import WorkspaceLoader from 'components/WorkspaceLoader.vue';
 import WorkspaceList from 'components/WorkspaceList.vue';
 import WorkspaceOverviewList from 'components/WorkspaceOverviewList.vue';
 import { useRoute } from 'vue-router';
-import { check_workspaces_on_HEPdata, load_workspaces_from_HEPdata } from 'src/core/hepdata';
+import { check_workspaces_on_HEPdata, load_workspaces_from_HEPdata, load_workspace_from_HEPdata_resource } from 'src/core/hepdata';
 import { onMounted } from 'vue';
 
 const route = useRoute();
@@ -33,6 +33,15 @@ onMounted(async () => {
       route.query.id as string
     );
     load_workspaces_from_HEPdata(analyses);
+  }
+  else if (route.query.inspire_id) {
+    const analyses = await check_workspaces_on_HEPdata(
+      route.query.inspire_id as string
+    );
+    load_workspaces_from_HEPdata(analyses);
+  }
+  else if (route.query.resource_id) {
+    load_workspace_from_HEPdata_resource(route.query.resource_id as string);
   }
 });
 </script>
