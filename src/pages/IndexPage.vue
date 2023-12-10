@@ -22,18 +22,17 @@ import WorkspaceLoader from 'components/WorkspaceLoader.vue';
 import WorkspaceList from 'components/WorkspaceList.vue';
 import WorkspaceOverviewList from 'components/WorkspaceOverviewList.vue';
 import { useRoute } from 'vue-router';
-import { useStoreIDStore } from 'src/stores/storeid';
+import { check_workspaces_on_HEPdata, load_workspaces_from_HEPdata } from 'src/core/hepdata';
 import { onMounted } from 'vue';
 
-const store_id_store = useStoreIDStore();
 const route = useRoute();
 
 onMounted(async () => {
   if (route.query.id) {
-    const analyses = await store_id_store.check_workspaces_on_HEPdata(
+    const analyses = await check_workspaces_on_HEPdata(
       route.query.id as string
     );
-    store_id_store.load_workspaces_from_HEPdata(analyses);
+    load_workspaces_from_HEPdata(analyses);
   }
 });
 </script>

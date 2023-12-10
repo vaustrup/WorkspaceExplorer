@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useStoreIDStore } from 'src/stores/storeid';
 import { Notify, QFile, QPopupProxy } from 'quasar';
+import { check_workspaces_on_HEPdata, load_workspaces_from_HEPdata } from 'src/core/hepdata';
 import type { IAnalysis, IAnalysisOption } from 'src/interfaces';
 
 const storeid_store = useStoreIDStore();
@@ -34,7 +35,7 @@ function get_file(): void {
 }
 
 async function on_click(): Promise<void> {
-  analyses.value = await storeid_store.check_workspaces_on_HEPdata(
+  analyses.value = await check_workspaces_on_HEPdata(
     hepdata_id.value
   );
   analyses_to_load = analyses.value.map((analysis) => {
@@ -44,7 +45,7 @@ async function on_click(): Promise<void> {
 }
 
 async function load_workspaces(): Promise<void> {
-  storeid_store.load_workspaces_from_HEPdata(analyses.value);
+  load_workspaces_from_HEPdata(analyses.value);
   popup.value?.hide();
   hepdata_id.value = '';
 }
