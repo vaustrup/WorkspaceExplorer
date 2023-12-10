@@ -182,11 +182,19 @@ export const useWorkspaceStore = function (id: number) {
       },
       async load_workspace_from_HEPdata(analysis: IAnalysis): Promise<void> {
         const response = await (
-          await fetch(
-            analysis.url.replace('landing_page=true', 'format=json&light=true')
-          )
-        ).json();
-        const workspace = JSON.parse(response.file_contents);
+          await fetch(analysis.url.replace('landing_page=true', 'format=json'))
+        ).json()
+        let workspace = {} as IWorkspace
+        if (response.file_contents === 'Large text file') {
+          workspace = await (
+            await fetch(
+              analysis.url.replace('landing_page=true', 'view=true')
+            )
+          ).json();
+        }
+        else {
+          workspace = JSON.parse(response.file_contents);
+        }
         this.workspace = workspace;
         this.name = analysis.name;
         this.loading = false;
