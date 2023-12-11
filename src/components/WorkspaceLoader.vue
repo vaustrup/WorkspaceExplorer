@@ -83,9 +83,11 @@ async function on_example_click(): Promise<void> {
       <q-input
         filled
         bottom-slots
-        label="Enter HEPdata ID"
+        label="INSPIRE ID of HEPData record"
         type="text"
         v-model="hepdata_id"
+        title="To load all available workspaces from a given HEPData record, enter the corresponding INSPIRE ID. The ID can be read from the URL as 'https://www.hepdata.net/record/ins<INSPIREID>'."
+        :input-style="{width:'220px'}"
         hide-bottom-space
         style="margin-right: 1em"
       />
