@@ -1,6 +1,5 @@
 export interface IHEPdataentry {
   record: { analyses: IHEPdataanalysis[] };
-  resources_with_doi: IDOIentry[];
 }
 
 export interface IDOIentry {
@@ -12,6 +11,7 @@ export interface IDOIentry {
 export interface IHEPdataanalysis {
   type: string;
   analysis: string;
+  filename: string;
 }
 
 export interface IAnalysis {

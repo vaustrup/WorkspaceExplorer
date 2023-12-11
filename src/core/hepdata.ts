@@ -29,14 +29,12 @@ export async function check_workspaces_on_HEPdata(
   if (hepdata_entry?.record.analyses === undefined) {
     return [];
   }
-  let analysis_index = -1;
   for (const analysis of hepdata_entry?.record.analyses) {
-    analysis_index++;
     if (analysis.type !== 'HistFactory') {
       continue;
     }
     analyses.push({
-      name: hepdata_entry.resources_with_doi[analysis_index].filename,
+      name: analysis.filename,
       url: analysis.analysis,
     });
   }
