@@ -21,27 +21,14 @@ const channel = workspace_store.channels[props.channel_index];
 
 const number_of_bins = channel.samples[0].data.length;
 
-const bins = Array.from({ length: number_of_bins }, (e, i) => i);
+const bins = Array.from({ length: number_of_bins }, (_, i) => i);
 
 const maximum = computed(() => {
   let max = 0;
-  for (
-    let i_bin = 0;
-    i_bin < channel.stacked_data_per_bin.content.length;
-    i_bin++
-  ) {
-    const high_value =
-      channel.stacked_data_per_bin.content[i_bin][
-        workspace_store.process_names.length - 1
-      ].high;
-    if (max < high_value) {
-      max = high_value;
-    }
-    const data_value = channel.stacked_data_per_bin.data[i_bin];
-    if (max < data_value) {
-      max = data_value;
-    }
-  }
+  channel.stacked_data_per_bin.content.forEach((binContent, i_bin) => {
+    const high = binContent[workspace_store.process_names.length - 1].high;
+    max = Math.max(max, high, channel.stacked_data_per_bin.data[i_bin]);
+  });
   return max;
 });
 
@@ -90,23 +77,16 @@ const y_ticks = computed(() => {
   } else if (max >= 3) {
     stepsize = 1;
   }
-  let i = 0;
   const ticks = [];
-  while (i <= max) {
+  for (let i = 0; i <= max; i+= stepsize) {
     ticks.push(i);
-    i += stepsize;
   }
   return ticks;
 });
 
-const y_tick_positions = computed(() => {
-  const max = maximum_normalised.value;
-  let tick_positions = [];
-  for (const tick of y_ticks.value) {
-    tick_positions.push(-(300 / max) * tick);
-  }
-  return tick_positions;
-});
+const y_tick_positions = computed(() =>
+  y_ticks.value.map(tick => -(300 / maximum_normalised.value) * tick)
+);
 
 const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
 </script>
@@ -226,14 +206,10 @@ const yaxis_path = axis_path(100, 350, 40, y_tick_positions.value, false, true);
 </template>
 
 <style scoped>
-rect.isnothighlighted {
-  fill-opacity: 0.5;
-  transition: fill-opacity 0.5s ease;
-}
-
+rect.isnothighlighted,
 path.isnothighlighted {
   fill-opacity: 0.5;
-  transition: fill-opacity 0.5s ease;
+  transition: fill-opacity 0.5s ease, fill 0.5s ease;
 }
 
 text.isnothighlighted {

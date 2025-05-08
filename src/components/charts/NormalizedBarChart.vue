@@ -29,18 +29,12 @@ const offset =
   (bar_height + padding) * workspace_store.channels.length + padding;
 
 // create strings for path of axes
-const y_ticks = [
-  ...Array(workspace_store.channels.length)
-    .fill(0)
-    .map((_, i) => (i + 0.5) * bar_height + (i + 1) * padding),
-];
+const y_ticks = Array.from({ length: workspace_store.channels.length }, (_, i) =>
+  (i + 0.5) * bar_height + (i + 1) * padding
+);
 const yaxis_path = axis_path(0, 0, offset, y_ticks, false, true);
 
-const x_ticks = [
-  ...Array(number_of_ticks)
-    .fill(0)
-    .map((_, i) => i * (x_range / (number_of_ticks - 1))),
-];
+const x_ticks = Array.from({ length: number_of_ticks }, (_, i) => i * (x_range / (number_of_ticks - 1)));
 const xaxis_path = axis_path(0, offset, x_range, x_ticks, true, true);
 
 // the height of the plot should be at least the height of the bars corresponding to the different channels
