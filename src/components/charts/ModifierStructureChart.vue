@@ -69,14 +69,11 @@ const legend_height = computed(() => {
 });
 
 // pre-compute positions of rects
-const x_pos = computed(() => {
-  // return list of x-positions for the modifiers
-  return workspace_store.modifier_names.map(
-    (_, index) => index * size + ylabel_length.value + label_offset
-  );
-});
+const x_pos: number[] = workspace_store.modifier_names.map(
+  (_, index) => index * size + ylabel_length.value + label_offset
+);
 
-const y_pos = computed(() => {
+const y_pos: number[][] = (() => {
   const positions: number[][] = [];
   let channel_offset = 0;
   for (const channel of workspace_store.channels) {
@@ -87,7 +84,7 @@ const y_pos = computed(() => {
     channel_offset += channel.samples.length * size + padding;
   }
   return positions;
-});
+})();
 
 // make interactive
 const state = reactive({

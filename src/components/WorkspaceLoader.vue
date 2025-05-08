@@ -8,7 +8,7 @@ import type { IAnalysis, IAnalysisOption } from 'src/interfaces';
 const storeid_store = useStoreIDStore();
 
 const hepdata_id = ref('');
-const analyses = ref([] as IAnalysis[]);
+const analyses = ref<IAnalysis[]>([]);
 let analyses_to_load = [] as IAnalysisOption[];
 const files = ref();
 const button_is_disabled = computed(() => {
